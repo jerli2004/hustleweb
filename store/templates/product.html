@@ -1,0 +1,1519 @@
+
+
+
+<!-- templates/product_detail.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.product_name }} - HUSTLER CURRENCY{% endblock %}
+
+{% block content %}
+
+<style>
+    /* Reset and Base Styles */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    .product-detail-section {
+        padding: 30px 0;
+        min-height: 100vh;
+        background: #fff;
+    }
+    
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 25px;
+        color: #333;
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 500;
+        padding: 8px 0;
+    }
+    
+    .back-link:hover {
+        color: #000;
+        text-decoration: underline;
+    }
+    
+    .product-detail-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 60px;
+    }
+    
+    /* Image Gallery Styles - UPDATED SLIDER */
+    .product-images {
+        position: relative;
+    }
+    
+    .image-gallery {
+        width: 100%;
+        overflow: hidden;
+        border-radius: 16px;
+        background: #f8f9fa;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        position: relative;
+    }
+    
+    .gallery-slides {
+        display: flex;
+        transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        height: 500px;
+        touch-action: pan-y;
+    }
+    
+    .gallery-slide {
+        min-width: 100%;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+    }
+    
+    .single-image-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+    
+    .gallery-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 12px;
+        background: white;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        user-select: none;
+        -webkit-user-drag: none;
+    }
+    
+    /* Gallery Controls - CENTERED ARROWS */
+    .gallery-controls {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        transform: translateY(-50%);
+        display: flex;
+        justify-content: space-between;
+        padding: 0 20px;
+        pointer-events: none;
+        z-index: 10;
+    }
+    
+    .gallery-btn {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.95);
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #333;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        pointer-events: auto;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        opacity: 0.8;
+    }
+    
+    .gallery-btn:hover {
+        background: white;
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        opacity: 1;
+    }
+    
+    .gallery-btn:active {
+        transform: scale(0.95);
+    }
+    
+    /* Hide arrows on mobile by default */
+    @media (max-width: 768px) {
+        .gallery-controls {
+            display: none;
+        }
+        
+        /* Show only when user hovers/taps the image */
+        .image-gallery:hover .gallery-controls,
+        .image-gallery:active .gallery-controls,
+        .image-gallery.touch-active .gallery-controls {
+            display: flex;
+        }
+    }
+    
+    /* Gallery Dots */
+    .gallery-dots {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 25px;
+    }
+    
+    .gallery-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #ddd;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        opacity: 0.7;
+    }
+    
+    .gallery-dot.active {
+        background: #333;
+        transform: scale(1.3);
+        border-color: white;
+        box-shadow: 0 0 0 2px #333;
+        opacity: 1;
+    }
+    
+    .gallery-dot:hover {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    
+    /* Mobile Swipe Indicator */
+    .swipe-hint {
+        display: none;
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        z-index: 10;
+        pointer-events: none;
+        animation: fadeInOut 2s ease-in-out;
+    }
+    
+    @keyframes fadeInOut {
+        0%, 100% { opacity: 0; }
+        50% { opacity: 1; }
+    }
+    
+    /* Mobile Touch Zone */
+    .touch-zone {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 5;
+        touch-action: pan-y;
+    }
+    
+    /* Progress Bar */
+    .gallery-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: rgba(0,0,0,0.1);
+        z-index: 5;
+        display: none;
+    }
+    
+    .progress-bar {
+        height: 100%;
+        background: #333;
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+    
+    /* Mobile full screen mode */
+    .gallery-fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.95);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease;
+    }
+    
+    .gallery-fullscreen.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .fullscreen-image {
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+        transform: scale(0.9);
+        transition: transform 0.3s ease;
+    }
+    
+    .gallery-fullscreen.active .fullscreen-image {
+        transform: scale(1);
+    }
+    
+    .close-fullscreen {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(255,255,255,0.1);
+        border: none;
+        color: white;
+        font-size: 30px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s ease;
+    }
+    
+    .close-fullscreen:hover {
+        background: rgba(255,255,255,0.2);
+    }
+    
+    /* Product Info Styles */
+    .product-info {
+        padding: 10px 0;
+    }
+    
+    .product-title {
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 1.2;
+        color: #111;
+        margin-bottom: 20px;
+    }
+    
+    .product-meta {
+        margin-bottom: 30px;
+    }
+    
+    .product-price {
+        display: flex;
+        align-items: baseline;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .current-price {
+        font-size: 36px;
+        font-weight: 800;
+        color: #111;
+        display: flex;
+        align-items: center;
+    }
+    
+    .current-price::before {
+        content: '₹';
+        font-size: 28px;
+        font-weight: 700;
+        margin-right: 2px;
+    }
+    
+    .original-price {
+        font-size: 22px;
+        color: #888;
+        text-decoration: line-through;
+        font-weight: 500;
+    }
+    
+    .original-price::before {
+        content: '₹';
+    }
+    
+    .discount-badge {
+        display: inline-block;
+        padding: 6px 14px;
+        background: #4CAF50;
+        color: white;
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: 20px;
+        margin-left: 10px;
+    }
+    
+    .product-description {
+        padding: 25px 0;
+        border-top: 1px solid #eee;
+        border-bottom: 1px solid #eee;
+        margin: 25px 0;
+    }
+    
+    .product-description h3 {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #111;
+    }
+    
+    .product-description p {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #444;
+    }
+    
+    /* Quantity Selector */
+    .quantity-selector {
+        margin: 30px 0;
+    }
+    
+    .quantity-selector h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #111;
+    }
+    
+    .quantity-control {
+        display: inline-flex;
+        align-items: center;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+        background: white;
+        transition: border-color 0.3s ease;
+    }
+    
+    .quantity-control:focus-within {
+        border-color: #333;
+        box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
+    }
+    
+    .qty-btn {
+        width: 50px;
+        height: 50px;
+        background: #f8f9fa;
+        border: none;
+        font-size: 22px;
+        color: #333;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    
+    .qty-btn:hover {
+        background: #e9ecef;
+    }
+    
+    .qty-input {
+        width: 70px;
+        height: 50px;
+        border: none;
+        text-align: center;
+        font-size: 20px;
+        font-weight: 600;
+        color: #111;
+        background: white;
+        -moz-appearance: textfield;
+    }
+    
+    .qty-input::-webkit-outer-spin-button,
+    .qty-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    
+    /* Product Actions */
+    .product-actions {
+        display: flex;
+        gap: 15px;
+        margin: 35px 0;
+        flex-wrap: wrap;
+    }
+    
+    .action-btn {
+        flex: 1;
+        min-width: 200px;
+        padding: 18px 30px;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .add-to-cart-btn {
+        background: linear-gradient(135deg, #333 0%, #111 100%);
+        color: white;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+    
+    .add-to-cart-btn:hover {
+        background: linear-gradient(135deg, #222 0%, #000 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    
+    .add-to-cart-btn:active {
+        transform: translateY(0);
+    }
+    
+    .buy-now-btn {
+        background: linear-gradient(135deg, #000 0%, #222 100%);
+        color: white;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+    
+    .buy-now-btn:hover {
+        background: linear-gradient(135deg, #111 0%, #000 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    
+    .buy-now-btn:active {
+        transform: translateY(0);
+    }
+    
+    /* Product Features */
+    .product-features {
+        padding-top: 30px;
+        border-top: 1px solid #eee;
+        margin-top: 30px;
+    }
+    
+    .feature {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin: 20px 0;
+        font-size: 15px;
+        color: #444;
+    }
+    
+    .feature i {
+        width: 24px;
+        font-size: 18px;
+        color: #333;
+    }
+    
+    .feature span {
+        font-weight: 500;
+    }
+    
+    /* ===== RESPONSIVE DESIGN ===== */
+    
+    /* Large Tablets (992px and below) */
+    @media (max-width: 992px) {
+        .product-detail-container {
+            gap: 50px;
+        }
+        
+        .gallery-slides {
+            height: 450px;
+        }
+        
+        .product-title {
+            font-size: 30px;
+        }
+        
+        .current-price {
+            font-size: 32px;
+        }
+        
+        .original-price {
+            font-size: 20px;
+        }
+        
+        .gallery-btn {
+            width: 46px;
+            height: 46px;
+        }
+    }
+    
+    /* Tablets (768px and below) */
+    @media (max-width: 768px) {
+        .product-detail-container {
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
+        
+        .gallery-slides {
+            height: 500px;
+        }
+        
+        .gallery-slide {
+            padding: 30px;
+        }
+        
+        .gallery-image {
+            padding: 15px;
+        }
+        
+        .product-title {
+            font-size: 28px;
+        }
+        
+        .current-price {
+            font-size: 30px;
+        }
+        
+        .product-actions {
+            flex-direction: row;
+        }
+        
+        .action-btn {
+            min-width: 180px;
+        }
+        
+        .gallery-btn {
+            width: 44px;
+            height: 44px;
+            font-size: 16px;
+        }
+        
+        /* Show swipe hint on mobile */
+        .swipe-hint {
+            display: block;
+        }
+        
+        /* Add progress bar on mobile */
+        .gallery-progress {
+            display: block;
+        }
+    }
+    
+    /* Mobile Landscape (640px and below) */
+    @media (max-width: 640px) {
+        .product-detail-section {
+            padding: 20px 0;
+        }
+        
+        .container {
+            padding: 0 16px;
+        }
+        
+        .gallery-slides {
+            height: 450px;
+        }
+        
+        .gallery-slide {
+            padding: 25px;
+        }
+        
+        .gallery-image {
+            padding: 12px;
+        }
+        
+        .product-title {
+            font-size: 26px;
+        }
+        
+        .current-price {
+            font-size: 28px;
+        }
+        
+        .original-price {
+            font-size: 18px;
+        }
+        
+        .product-description h3 {
+            font-size: 19px;
+        }
+        
+        .product-description p {
+            font-size: 15px;
+        }
+        
+        .action-btn {
+            padding: 16px 24px;
+            font-size: 15px;
+            min-width: 160px;
+        }
+        
+        .gallery-btn {
+            width: 42px;
+            height: 42px;
+            font-size: 15px;
+        }
+        
+        .gallery-controls {
+            padding: 0 15px;
+        }
+    }
+    
+    /* Mobile Portrait (480px and below) */
+    @media (max-width: 480px) {
+        .gallery-slides {
+            height: 400px;
+        }
+        
+        .gallery-slide {
+            padding: 20px;
+        }
+        
+        .gallery-image {
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .product-title {
+            font-size: 24px;
+        }
+        
+        .product-price {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .current-price {
+            font-size: 26px;
+        }
+        
+        .original-price {
+            font-size: 17px;
+        }
+        
+        .discount-badge {
+            margin-left: 0;
+            margin-top: 5px;
+        }
+        
+        .product-actions {
+            flex-direction: column;
+        }
+        
+        .action-btn {
+            width: 100%;
+            min-width: 100%;
+        }
+        
+        .quantity-control {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .qty-input {
+            width: 80px;
+        }
+        
+        .gallery-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 14px;
+        }
+        
+        .gallery-controls {
+            padding: 0 10px;
+        }
+        
+        .gallery-dot {
+            width: 10px;
+            height: 10px;
+        }
+    }
+    
+    /* Small Mobile (375px and below) */
+    @media (max-width: 375px) {
+        .gallery-slides {
+            height: 350px;
+        }
+        
+        .gallery-slide {
+            padding: 15px;
+        }
+        
+        .gallery-image {
+            padding: 8px;
+        }
+        
+        .product-title {
+            font-size: 22px;
+        }
+        
+        .current-price {
+            font-size: 24px;
+        }
+        
+        .original-price {
+            font-size: 16px;
+        }
+        
+        .product-description h3 {
+            font-size: 18px;
+        }
+        
+        .action-btn {
+            padding: 14px 20px;
+            font-size: 14px;
+        }
+        
+        .feature {
+            font-size: 14px;
+        }
+        
+        .feature i {
+            font-size: 16px;
+        }
+        
+        .gallery-btn {
+            width: 38px;
+            height: 38px;
+            font-size: 13px;
+        }
+        
+        .gallery-dot {
+            width: 9px;
+            height: 9px;
+        }
+    }
+    
+    /* Extra Small Mobile (320px and below) */
+    @media (max-width: 320px) {
+        .product-detail-section {
+            padding: 16px 0;
+        }
+        
+        .container {
+            padding: 0 12px;
+        }
+        
+        .back-link {
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .gallery-slides {
+            height: 320px;
+        }
+        
+        .gallery-slide {
+            padding: 12px;
+        }
+        
+        .gallery-image {
+            padding: 6px;
+            border-radius: 6px;
+        }
+        
+        .product-title {
+            font-size: 20px;
+        }
+        
+        .current-price {
+            font-size: 22px;
+        }
+        
+        .original-price {
+            font-size: 15px;
+        }
+        
+        .product-description {
+            padding: 20px 0;
+            margin: 20px 0;
+        }
+        
+        .product-description h3 {
+            font-size: 17px;
+        }
+        
+        .product-description p {
+            font-size: 14px;
+        }
+        
+        .quantity-selector {
+            margin: 25px 0;
+        }
+        
+        .qty-btn {
+            width: 44px;
+            height: 44px;
+            font-size: 20px;
+        }
+        
+        .qty-input {
+            width: 70px;
+            height: 44px;
+            font-size: 18px;
+        }
+        
+        .gallery-btn {
+            width: 36px;
+            height: 36px;
+            font-size: 12px;
+        }
+        
+        .gallery-dot {
+            width: 8px;
+            height: 8px;
+        }
+    }
+    
+    /* Fold Devices (280px and below) */
+    @media (max-width: 280px) {
+        .gallery-slides {
+            height: 280px;
+        }
+        
+        .gallery-slide {
+            padding: 10px;
+        }
+        
+        .product-title {
+            font-size: 19px;
+        }
+        
+        .current-price {
+            font-size: 20px;
+        }
+        
+        .original-price {
+            font-size: 14px;
+        }
+        
+        .discount-badge {
+            font-size: 12px;
+            padding: 4px 10px;
+        }
+        
+        .action-btn {
+            padding: 12px 16px;
+            font-size: 13px;
+        }
+        
+        .gallery-btn {
+            width: 34px;
+            height: 34px;
+        }
+    }
+</style>
+
+<section class="product-detail-section">
+    <div class="container">
+        <!-- Back to products link -->
+        <a href="{% url 'home' %}#products" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Products
+        </a>
+        
+        <div class="product-detail-container">
+            <!-- Product Images Gallery - IMPROVED SLIDER -->
+            <div class="product-images">
+                <div class="image-gallery" id="imageGallery">
+                    <div class="gallery-slides" id="gallerySlides">
+                        <!-- Slide 1: First image -->
+                        <div class="gallery-slide" data-slide="0">
+                            <div class="single-image-container">
+                                <img src="{{ product.product_img.url }}" 
+                                     alt="{{ product.product_name }} - Main View"
+                                     class="gallery-image"
+                                     loading="lazy"
+                                     data-full="{{ product.product_img.url }}">
+                            </div>
+                        </div>
+                        
+                        <!-- Slide 2: Second image (if available) -->
+                        {% if product.another_product_img %}
+                        <div class="gallery-slide" data-slide="1">
+                            <div class="single-image-container">
+                                <img src="{{ product.another_product_img.url }}" 
+                                     alt="{{ product.product_name }} - Alternate View"
+                                     class="gallery-image"
+                                     loading="lazy"
+                                     data-full="{{ product.another_product_img.url }}">
+                            </div>
+                        </div>
+                        {% else %}
+                        <!-- If no second image, show main image again -->
+                        <div class="gallery-slide" data-slide="1">
+                            <div class="single-image-container">
+                                <img src="{{ product.product_img.url }}" 
+                                     alt="{{ product.product_name }} - View 2"
+                                     class="gallery-image"
+                                     loading="lazy"
+                                     data-full="{{ product.product_img.url }}">
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Add more images if available in your model -->
+                        {% if product.image_3 %}
+                        <div class="gallery-slide" data-slide="2">
+                            <div class="single-image-container">
+                                <img src="{{ product.image_3.url }}" 
+                                     alt="{{ product.product_name }} - View 3"
+                                     class="gallery-image"
+                                     loading="lazy"
+                                     data-full="{{ product.image_3.url }}">
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if product.image_4 %}
+                        <div class="gallery-slide" data-slide="3">
+                            <div class="single-image-container">
+                                <img src="{{ product.image_4.url }}" 
+                                     alt="{{ product.product_name }} - View 4"
+                                     class="gallery-image"
+                                     loading="lazy"
+                                     data-full="{{ product.image_4.url }}">
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Gallery Controls - CENTERED ARROWS -->
+                    <div class="gallery-controls">
+                        <button class="gallery-btn prev-btn" aria-label="Previous image">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="gallery-btn next-btn" aria-label="Next image">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Mobile Swipe Hint -->
+                    <div class="swipe-hint" id="swipeHint">
+                        <i class="fas fa-arrows-alt-h"></i> Swipe to navigate
+                    </div>
+                    
+                    <!-- Mobile Touch Zone -->
+                    <div class="touch-zone" id="touchZone"></div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="gallery-progress">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                </div>
+                
+                <!-- Gallery Dots -->
+                <div class="gallery-dots" id="galleryDots">
+                    <!-- Dots will be generated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Product Info -->
+            <div class="product-info">
+                <h1 class="product-title">{{ product.product_name }}</h1>
+                
+                <!-- Product Meta -->
+                <div class="product-meta">
+                    <div class="product-price">
+                        <span class="current-price">{{ product.product_price }}</span>
+                        {% if product.original_price and product.original_price > product.product_price %}
+                        <span class="original-price">{{ product.original_price }}</span>
+                        <span class="discount-badge">
+                            {% widthratio product.product_price product.original_price 100 as discount %}
+                            {{ 100|add:discount|add:"-"|slice:"0:2" }}% OFF
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Product Description -->
+                <div class="product-description">
+                    <h3>Description</h3>
+                    <p>{{ product.product_detail|default:"Product details not available."|linebreaks }}</p>
+                </div>
+                
+                <!-- Quantity Selector -->
+                <div class="quantity-selector">
+                    <h3>Quantity</h3>
+                    <div class="quantity-control">
+                        <button class="qty-btn minus" type="button" aria-label="Decrease quantity">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <input type="number" class="qty-input" value="1" min="1" max="10" id="quantity-input" aria-label="Quantity">
+                        <button class="qty-btn plus" type="button" aria-label="Increase quantity">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Product Actions -->
+                <div class="product-actions">
+                    <!-- Add to Cart Form -->
+                    <form method="POST" action="{% url 'add_to_cart' %}" id="add-to-cart-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="productid" value="{{ product.id }}">
+                        <input type="hidden" name="quantity" id="hidden-quantity" value="1">
+                        <button type="submit" class="action-btn add-to-cart-btn" aria-label="Add to cart">
+                            <i class="fas fa-shopping-cart"></i> ADD TO CART
+                        </button>
+                    </form>
+                    
+                    <!-- Buy Now Form -->
+                    <form method="POST" action="{% url 'buy_now' %}" id="buy-now-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="productid" value="{{ product.id }}">
+                        <input type="hidden" name="quantity" id="buy-now-quantity" value="1">
+                        <button type="submit" class="action-btn buy-now-btn" aria-label="Buy now">
+                            <i class="fas fa-bolt"></i> BUY NOW
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Product Features -->
+                <div class="product-features">
+                    <div class="feature">
+                        <i class="fas fa-shipping-fast"></i>
+                        <span>Free Shipping Across India</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-undo"></i>
+                        <span>7-Day Return Policy</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>100% Authentic Products</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Secure Payment</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Full Screen Modal -->
+    <div class="gallery-fullscreen" id="fullscreenModal">
+        <button class="close-fullscreen" aria-label="Close fullscreen">
+            <i class="fas fa-times"></i>
+        </button>
+        <img src="" alt="" class="fullscreen-image" id="fullscreenImage">
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gallery Elements
+    const gallerySlides = document.getElementById('gallerySlides');
+    const galleryDots = document.getElementById('galleryDots');
+    const prevBtn = document.querySelector('.prev-btn');
+    const nextBtn = document.querySelector('.next-btn');
+    const imageGallery = document.getElementById('imageGallery');
+    const touchZone = document.getElementById('touchZone');
+    const progressBar = document.getElementById('progressBar');
+    const swipeHint = document.getElementById('swipeHint');
+    
+    // Full screen elements
+    const fullscreenModal = document.getElementById('fullscreenModal');
+    const fullscreenImage = document.getElementById('fullscreenImage');
+    const closeFullscreen = document.querySelector('.close-fullscreen');
+    
+    // Get all slides
+    const slides = Array.from(gallerySlides.children);
+    const totalSlides = slides.length;
+    
+    let currentSlide = 0;
+    let isAnimating = false;
+    let startX = 0;
+    let currentX = 0;
+    let isDragging = false;
+    let dragOffset = 0;
+    let autoSlideInterval;
+    let isMobile = window.innerWidth <= 768;
+    
+    // Initialize gallery dots
+    function initDots() {
+        galleryDots.innerHTML = '';
+        slides.forEach((_, index) => {
+            const dot = document.createElement('span');
+            dot.className = 'gallery-dot' + (index === 0 ? ' active' : '');
+            dot.setAttribute('data-slide', index);
+            dot.setAttribute('aria-label', `Go to slide ${index + 1}`);
+            dot.addEventListener('click', () => goToSlide(index));
+            galleryDots.appendChild(dot);
+        });
+    }
+    
+    // Update progress bar
+    function updateProgress() {
+        const progress = ((currentSlide + 1) / totalSlides) * 100;
+        if (progressBar) {
+            progressBar.style.width = `${progress}%`;
+        }
+    }
+    
+    // Update gallery position
+    function updateGalleryPosition() {
+        if (isAnimating) return;
+        
+        // Calculate offset for smooth dragging
+        const offset = -currentSlide * 100 + dragOffset;
+        gallerySlides.style.transform = `translateX(${offset}%)`;
+        
+        // Update dots
+        const dots = document.querySelectorAll('.gallery-dot');
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === currentSlide);
+        });
+        
+        updateProgress();
+    }
+    
+    // Go to specific slide
+    function goToSlide(index) {
+        if (index < 0) index = totalSlides - 1;
+        if (index >= totalSlides) index = 0;
+        
+        if (currentSlide !== index) {
+            currentSlide = index;
+            updateGalleryPosition();
+            resetAutoSlide();
+        }
+    }
+    
+    // Next slide
+    function nextSlide() {
+        goToSlide(currentSlide + 1);
+    }
+    
+    // Previous slide
+    function prevSlide() {
+        goToSlide(currentSlide - 1);
+    }
+    
+    // Touch events for mobile
+    function initTouchEvents() {
+        if (!touchZone) return;
+        
+        touchZone.addEventListener('touchstart', handleTouchStart, { passive: true });
+        touchZone.addEventListener('touchmove', handleTouchMove, { passive: true });
+        touchZone.addEventListener('touchend', handleTouchEnd, { passive: true });
+        
+        // Also add mouse events for desktop testing
+        touchZone.addEventListener('mousedown', handleMouseDown);
+        touchZone.addEventListener('mousemove', handleMouseMove);
+        touchZone.addEventListener('mouseup', handleMouseUp);
+        touchZone.addEventListener('mouseleave', handleMouseUp);
+        
+        // Show/hide controls on touch
+        touchZone.addEventListener('touchstart', () => {
+            imageGallery.classList.add('touch-active');
+            setTimeout(() => {
+                imageGallery.classList.remove('touch-active');
+            }, 3000);
+        });
+    }
+    
+    function handleTouchStart(e) {
+        if (isAnimating) return;
+        startX = e.touches[0].clientX;
+        currentX = startX;
+        isDragging = true;
+        gallerySlides.style.transition = 'none';
+        hideSwipeHint();
+    }
+    
+    function handleTouchMove(e) {
+        if (!isDragging) return;
+        currentX = e.touches[0].clientX;
+        dragOffset = ((currentX - startX) / imageGallery.offsetWidth) * 100;
+        
+        // Limit dragging to prevent overscroll
+        const maxDrag = 30;
+        if (dragOffset > maxDrag) dragOffset = maxDrag;
+        if (dragOffset < -maxDrag) dragOffset = -maxDrag;
+        
+        updateGalleryPosition();
+    }
+    
+    function handleTouchEnd() {
+        if (!isDragging) return;
+        isDragging = false;
+        gallerySlides.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        
+        const threshold = 20; // Minimum drag distance to change slide
+        const dragDistance = currentX - startX;
+        
+        if (Math.abs(dragDistance) > threshold) {
+            if (dragDistance > 0) {
+                prevSlide();
+            } else {
+                nextSlide();
+            }
+        }
+        
+        // Reset drag offset
+        dragOffset = 0;
+        updateGalleryPosition();
+    }
+    
+    // Mouse events (for desktop testing)
+    function handleMouseDown(e) {
+        if (isAnimating || !isMobile) return;
+        e.preventDefault();
+        startX = e.clientX;
+        currentX = startX;
+        isDragging = true;
+        gallerySlides.style.transition = 'none';
+    }
+    
+    function handleMouseMove(e) {
+        if (!isDragging) return;
+        currentX = e.clientX;
+        dragOffset = ((currentX - startX) / imageGallery.offsetWidth) * 100;
+        
+        // Limit dragging
+        const maxDrag = 30;
+        if (dragOffset > maxDrag) dragOffset = maxDrag;
+        if (dragOffset < -maxDrag) dragOffset = -maxDrag;
+        
+        updateGalleryPosition();
+    }
+    
+    function handleMouseUp() {
+        if (!isDragging) return;
+        isDragging = false;
+        gallerySlides.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        
+        const threshold = 20;
+        const dragDistance = currentX - startX;
+        
+        if (Math.abs(dragDistance) > threshold) {
+            if (dragDistance > 0) {
+                prevSlide();
+            } else {
+                nextSlide();
+            }
+        }
+        
+        dragOffset = 0;
+        updateGalleryPosition();
+    }
+    
+    // Auto slide functionality
+    function startAutoSlide() {
+        if (totalSlides <= 1 || isMobile) return;
+        
+        autoSlideInterval = setInterval(() => {
+            nextSlide();
+        }, 5000); // Change slide every 5 seconds
+    }
+    
+    function resetAutoSlide() {
+        if (autoSlideInterval) {
+            clearInterval(autoSlideInterval);
+            startAutoSlide();
+        }
+    }
+    
+    function stopAutoSlide() {
+        if (autoSlideInterval) {
+            clearInterval(autoSlideInterval);
+        }
+    }
+    
+    // Hide swipe hint after first interaction
+    function hideSwipeHint() {
+        if (swipeHint) {
+            swipeHint.style.display = 'none';
+        }
+    }
+    
+    // Full screen functionality
+    function initFullscreen() {
+        slides.forEach((slide, index) => {
+            const img = slide.querySelector('img');
+            if (img) {
+                img.addEventListener('click', () => {
+                    const fullImageUrl = img.getAttribute('data-full') || img.src;
+                    fullscreenImage.src = fullImageUrl;
+                    fullscreenImage.alt = img.alt;
+                    fullscreenModal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                    
+                    // Also show current slide in fullscreen
+                    currentSlide = index;
+                    updateGalleryPosition();
+                });
+            }
+        });
+        
+        // Close fullscreen
+        if (closeFullscreen) {
+            closeFullscreen.addEventListener('click', closeFullscreenModal);
+        }
+        
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && fullscreenModal.classList.contains('active')) {
+                closeFullscreenModal();
+            }
+        });
+        
+        // Close on background click
+        fullscreenModal.addEventListener('click', (e) => {
+            if (e.target === fullscreenModal) {
+                closeFullscreenModal();
+            }
+        });
+    }
+    
+    function closeFullscreenModal() {
+        fullscreenModal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    
+    // Navigation button events
+    if (prevBtn) {
+        prevBtn.addEventListener('click', prevSlide);
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', nextSlide);
+    }
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') {
+            prevSlide();
+        } else if (e.key === 'ArrowRight') {
+            nextSlide();
+        }
+    });
+    
+    // Pause auto slide on hover (desktop only)
+    if (!isMobile) {
+        imageGallery.addEventListener('mouseenter', stopAutoSlide);
+        imageGallery.addEventListener('mouseleave', startAutoSlide);
+    }
+    
+    // Quantity Controls
+    const qtyInput = document.getElementById('quantity-input');
+    const minusBtn = document.querySelector('.minus');
+    const plusBtn = document.querySelector('.plus');
+    const hiddenQtyInput = document.getElementById('hidden-quantity');
+    const buyNowQtyInput = document.getElementById('buy-now-quantity');
+    
+    // Update hidden inputs
+    function updateHiddenInputs() {
+        const value = qtyInput.value;
+        if (hiddenQtyInput) hiddenQtyInput.value = value;
+        if (buyNowQtyInput) buyNowQtyInput.value = value;
+    }
+    
+    // Minus button
+    if (minusBtn) {
+        minusBtn.addEventListener('click', function() {
+            let value = parseInt(qtyInput.value) || 1;
+            if (value > 1) {
+                qtyInput.value = value - 1;
+                updateHiddenInputs();
+            }
+        });
+    }
+    
+    // Plus button
+    if (plusBtn) {
+        plusBtn.addEventListener('click', function() {
+            let value = parseInt(qtyInput.value) || 1;
+            if (value < 10) {
+                qtyInput.value = value + 1;
+                updateHiddenInputs();
+            }
+        });
+    }
+    
+    // Quantity input validation
+    if (qtyInput) {
+        qtyInput.addEventListener('change', function() {
+            let value = parseInt(this.value) || 1;
+            if (value < 1) value = 1;
+            if (value > 10) value = 10;
+            this.value = value;
+            updateHiddenInputs();
+        });
+        
+        // Initialize
+        updateHiddenInputs();
+        
+        // Prevent invalid input
+        qtyInput.addEventListener('keydown', function(e) {
+            if (e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+                e.preventDefault();
+            }
+        });
+    }
+    
+    // Initialize everything
+    initDots();
+    updateProgress();
+    initTouchEvents();
+    initFullscreen();
+    
+    if (!isMobile) {
+        startAutoSlide();
+    }
+    
+    // Handle window resize
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            const wasMobile = isMobile;
+            isMobile = window.innerWidth <= 768;
+            
+            if (wasMobile !== isMobile) {
+                if (isMobile) {
+                    stopAutoSlide();
+                } else {
+                    startAutoSlide();
+                }
+            }
+            
+            // Update gallery position
+            updateGalleryPosition();
+        }, 250);
+    });
+    
+    // Initial update
+    updateGalleryPosition();
+    
+    // Hide swipe hint after 5 seconds
+    if (isMobile && swipeHint) {
+        setTimeout(hideSwipeHint, 5000);
+    }
+    
+    // Add animation end listener
+    gallerySlides.addEventListener('transitionend', () => {
+        isAnimating = false;
+    });
+});
+</script>
+{% endblock %}
