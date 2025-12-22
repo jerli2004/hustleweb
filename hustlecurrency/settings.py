@@ -33,9 +33,6 @@ SECRET_KEY ='uW9TJJvVoKL3lp06JqqsEsNY7SYpFRQHZdY_OwsPiniqisLrHrDmFWHR7PhDMDYmQGM
 DEBUG =False
 ALLOWED_HOSTS = ['.vercel.app', 'localhost', '127.0.0.1']
 
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [BASE_DIR / 'static']
-MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Application definition
@@ -135,8 +132,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 # STATIC FILES CONFIG (CORRECT)
 
+# STATIC FILES
 STATIC_URL = '/static/'
-
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_DIRS = [
