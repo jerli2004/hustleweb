@@ -136,11 +136,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS=[os.path.join(BASE_DIR, 'static')]
-STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
-MEDIA_URL='media/'
-MEDIA_ROOT=os.path.join(BASE_DIR, 'media')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # Where your dev static files are
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')    # Where collectstatic will copy them
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'store', 'static'),
+]
+
+
+MEDIA_URL='media/' 
+MEDIA_ROOT=os.path.join(BASE_DIR, 'media')
+
 
 
 
