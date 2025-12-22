@@ -1,0 +1,540 @@
+<!-- templates/order_details.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order #{{ order.order_id }} - HUSTLER CURRENCY{% endblock %}
+
+{% block content %}
+<div class="order-details-page">
+    <!-- Header -->
+    <div class="order-header">
+        <h1>🛒 Order Details</h1>
+        <div class="order-id">Order #{{ order.order_id }}</div>
+    </div>
+    
+    <!-- Order Status Bar -->
+    <div class="status-bar">
+        <div class="status-item {% if order.status == 'pending' %}active{% endif %}">
+            <span>📝</span>
+            <p>Pending</p>
+        </div>
+        <div class="status-item {% if order.status == 'processing' %}active{% endif %}">
+            <span>⚙️</span>
+            <p>Processing</p>
+        </div>
+        <div class="status-item {% if order.status == 'shipped' %}active{% endif %}">
+            <span>🚚</span>
+            <p>Shipped</p>
+        </div>
+        <div class="status-item {% if order.status == 'delivered' %}active{% endif %}">
+            <span>✅</span>
+            <p>Delivered</p>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="order-content">
+        <!-- Left Column - Order Info -->
+        <div class="left-column">
+            <!-- Customer Info -->
+            <div class="info-box">
+                <h2>👤 Customer Information</h2>
+                <div class="info-grid">
+                    <div class="info-row">
+                        <span class="label">Name:</span>
+                        <span class="value">{{ order.customer }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Email:</span>
+                        <span class="value">{{ order.email }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Phone:</span>
+                        <span class="value">{{ order.phone }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Order Date:</span>
+                        <span class="value">{{ order.created_at|date:"d M Y, h:i A" }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Shipping Address -->
+            <div class="info-box">
+                <h2>📍 Shipping Address</h2>
+                <div class="address">
+                    <p>{{ order.address.address }}</p>
+                    {% if order.address.apartment_suite %}
+                    <p>{{ order.address.apartment_suite }}</p>
+                    {% endif %}
+                    <p>{{ order.address.city }}, {{ order.address.state }} - {{ order.address.pin_code }}</p>
+                    <p>{{ order.address.country }}</p>
+                </div>
+            </div>
+            
+            <!-- Order Notes -->
+            {% if order.notes %}
+            <div class="info-box">
+                <h2>📝 Order Notes</h2>
+                <p class="notes">{{ order.notes }}</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Right Column - Order Summary -->
+        <div class="right-column">
+            <!-- Order Items -->
+            <div class="summary-box">
+                <h2>🛍️ Order Items</h2>
+                <div class="items-list">
+                    {% for item in order_items %}
+                    <div class="order-item">
+                        <div class="item-image">
+                            {% if item.product.product_img %}
+                            <img src="{{ item.product.product_img.url }}" alt="{{ item.product.product_name }}">
+                            {% else %}
+                            <div class="no-image">📦</div>
+                            {% endif %}
+                        </div>
+                        <div class="item-details">
+                            <h3>{{ item.product.product_name }}</h3>
+                            <div class="item-meta">
+                                <span>Quantity: {{ item.quantity }}</span>
+                                <span>Price: ₹{{ item.price }}</span>
+                            </div>
+                        </div>
+                        <div class="item-total">
+                            ₹{{ item.item_total|floatformat:2 }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Order Summary -->
+                <div class="order-summary">
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span>₹{{ order.total_amount|floatformat:2 }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Shipping:</span>
+                        <span>FREE</span>
+                    </div>
+                    
+                    {% if cod_advance %}
+                    <div class="summary-row cod-info">
+                        <span>COD Advance (20%):</span>
+                        <span>₹{{ cod_advance|floatformat:2 }}</span>
+                    </div>
+                    <div class="summary-row cod-info">
+                        <span>Balance on Delivery:</span>
+                        <span>₹{{ balance_due|floatformat:2 }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <span>₹{{ order.total_amount|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Information -->
+            <div class="payment-box">
+                <h2>💳 Payment Information</h2>
+                <div class="payment-details">
+                    <div class="payment-row">
+                        <span>Payment Method:</span>
+                        <span class="method {{ order.payment_method }}">
+                            {{ order.get_payment_method_display }}
+                        </span>
+                    </div>
+                    <div class="payment-row">
+                        <span>Payment Status:</span>
+                        <span class="status {{ order.payment_status }}">
+                            {{ order.get_payment_status_display }}
+                        </span>
+                    </div>
+                    {% if order.razorpay_order_id %}
+                    <div class="payment-row">
+                        <span>Razorpay Order ID:</span>
+                        <span class="razorpay-id">{{ order.razorpay_order_id }}</span>
+                    </div>
+                    {% endif %}
+                    {% if order.razorpay_payment_id %}
+                    <div class="payment-row">
+                        <span>Payment ID:</span>
+                        <span class="payment-id">{{ order.razorpay_payment_id }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="actions-box">
+                <h2>⚡ Quick Actions</h2>
+                <div class="action-buttons">
+                    <button onclick="window.print()" class="btn print-btn">
+                        🖨️ Print Order
+                    </button>
+                    <a href="/admin/store/order/{{ order.id }}/change/" class="btn edit-btn" target="_blank">
+                        ✏️ Edit Order
+                    </a>
+                    <a href="{% url 'admin_dashboard' %}" class="btn dashboard-btn">
+                        📊 All Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.order-details-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+.order-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.order-header h1 {
+    margin: 0;
+    color: #333;
+    font-size: 32px;
+}
+
+.order-id {
+    font-size: 18px;
+    color: #666;
+    margin-top: 10px;
+}
+
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.status-item {
+    text-align: center;
+    flex: 1;
+    padding: 10px;
+}
+
+.status-item span {
+    font-size: 24px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.status-item p {
+    margin: 0;
+    color: #999;
+}
+
+.status-item.active p {
+    color: #1a237e;
+    font-weight: bold;
+}
+
+.order-content {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 30px;
+}
+
+@media (max-width: 992px) {
+    .order-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+.left-column,
+.right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.info-box,
+.summary-box,
+.payment-box,
+.actions-box {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.info-box h2,
+.summary-box h2,
+.payment-box h2,
+.actions-box h2 {
+    margin: 0 0 20px 0;
+    color: #333;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.info-grid {
+    display: grid;
+    gap: 15px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.label {
+    color: #666;
+    font-weight: 500;
+}
+
+.value {
+    color: #333;
+    font-weight: 600;
+}
+
+.address p {
+    margin: 8px 0;
+    color: #333;
+}
+
+.notes {
+    color: #666;
+    line-height: 1.6;
+}
+
+/* Order Items */
+.items-list {
+    margin-bottom: 25px;
+}
+
+.order-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: #f9f9f9;
+}
+
+.item-image {
+    width: 60px;
+    height: 60px;
+    margin-right: 15px;
+}
+
+.item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ddd;
+    border-radius: 6px;
+    font-size: 24px;
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-details h3 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.item-meta {
+    display: flex;
+    gap: 15px;
+    color: #666;
+    font-size: 14px;
+}
+
+.item-total {
+    font-weight: bold;
+    color: #1a237e;
+    font-size: 18px;
+}
+
+/* Order Summary */
+.order-summary {
+    border-top: 2px solid #eee;
+    padding-top: 20px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+}
+
+.summary-row.total {
+    font-size: 18px;
+    font-weight: bold;
+    color: #1a237e;
+}
+
+.cod-info {
+    background: #fff8e1;
+    padding: 8px 15px;
+    border-radius: 6px;
+    margin: 5px 0;
+}
+
+/* Payment Details */
+.payment-details {
+    display: grid;
+    gap: 15px;
+}
+
+.payment-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.method.razorpay {
+    background: #4CAF50;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.method.cod {
+    background: #FF9800;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.status.completed {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.status.partial {
+    color: #FF9800;
+    font-weight: bold;
+}
+
+.status.pending {
+    color: #f44336;
+    font-weight: bold;
+}
+
+.razorpay-id,
+.payment-id {
+    font-family: monospace;
+    background: #f5f5f5;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.btn {
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s;
+}
+
+.print-btn {
+    background: #1a237e;
+    color: white;
+}
+
+.edit-btn {
+    background: #4CAF50;
+    color: white;
+}
+
+.dashboard-btn {
+    background: #666;
+    color: white;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Print Styles */
+@media print {
+    .order-details-page {
+        background: white;
+        padding: 0;
+    }
+    
+    .actions-box,
+    .status-bar {
+        display: none;
+    }
+    
+    .info-box,
+    .summary-box,
+    .payment-box {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}
+</style>
+{% endblock %}

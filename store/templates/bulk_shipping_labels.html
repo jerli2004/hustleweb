@@ -1,0 +1,133 @@
+<!-- templates/bulk_shipping_labels.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @media print {
+            body { margin: 0; padding: 0; }
+            .no-print { display: none !important; }
+            .shipping-label {
+                width: 4in !important;
+                height: 6in !important;
+                margin: 0 !important;
+                padding: 10px !important;
+                page-break-inside: avoid;
+                page-break-after: always;
+                float: left;
+            }
+            @page {
+                margin: 0;
+                size: 4in 6in;
+            }
+        }
+        
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .shipping-label {
+            width: 4in;
+            height: 6in;
+            border: 2px dashed #333;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            margin: 10px;
+            background: white;
+            display: inline-block;
+            vertical-align: top;
+            box-sizing: border-box;
+            position: relative;
+        }
+        
+        .print-controls {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+        
+        /* ... rest of styles same as individual label ... */
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="print-controls no-print">
+        <h2>Printing {{ orders|length }} Shipping Labels</h2>
+        <button onclick="window.print()" class="print-btn">
+            <i class="fas fa-print"></i> Print All Labels
+        </button>
+        <p>Labels will print on 4x6 inch thermal paper</p>
+    </div>
+    
+    {% for order in orders %}
+    <div class="shipping-label">
+        <!-- Same content as individual label -->
+        {% if order.payment_method == 'cod' %}
+        <div class="sticker cod">COD</div>
+        {% endif %}
+        <div class="sticker fragile">FRAGILE</div>
+        
+        <div class="label-header">
+            <p class="company-name">HUSTLER CURRENCY</p>
+            {% comment %} <p style="font-size: 10px; margin: 2px 0;">Order #{{ order.order_id }}</p> {% endcomment %}
+                  {% if track_id %}
+                <p><strong>Tracking ID:</strong> {{ track_id }}</p>
+        {% endif %}
+      
+        </div>
+        
+        <div class="address-section">
+            <p class="address-title">TO:</p>
+            <p class="address-content">
+                <strong>{{ order.customer|upper }}</strong><br>
+                {{ order.address.city }}, {{ order.address.state }}<br>
+                PIN: {{ order.address.pin_code }}<br>
+                📱 {{ order.phone }}
+            </p>
+        </div>
+        
+        <div class="order-info">
+            <div class="info-row">
+                <span>Amount:</span>
+                <span>₹{{ order.total_amount|floatformat:2 }}</span>
+            </div>
+            <div class="info-row">
+                <span>Payment:</span>
+                <span>
+                    {% if order.payment_method == 'cod' %}
+                        COD
+                    {% else %}
+                        Prepaid
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        
+        <div class="barcode">
+            *{{ order.order_id }}*
+        </div>
+        
+        {% if order.payment_method == 'cod' %}
+        <div class="cod-amount">
+            COLLECT: ₹{{ order.total_amount|floatformat:2 }}
+        </div>
+        {% endif %}
+        
+        <div class="instructions">
+            <p>Scan barcode for tracking</p>
+        </div>
+    </div>
+    {% endfor %}
+    
+    <script>
+        // Auto-print after loading
+        window.onload = function() {
+            setTimeout(() => {
+                window.print();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>

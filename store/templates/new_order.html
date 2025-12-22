@@ -1,0 +1,104 @@
+<!-- templates/emails/new_order.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #000; color: white; padding: 20px; text-align: center; }
+        .content { background: #f9f9f9; padding: 30px; }
+        .order-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .detail-row:last-child { border-bottom: none; }
+        .total-row { font-weight: bold; border-top: 2px solid #000; border-bottom: none; margin-top: 10px; padding-top: 15px; }
+        .cod-info { background: #fff8e1; padding: 15px; border-radius: 5px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>HUSTLER CURRENCY</h1>
+            <h2>New Order Received</h2>
+        </div>
+        
+        <div class="content">
+            <h3>Order #{{ order.order_id }}</h3>
+            
+            <div class="order-details">
+                <div class="detail-row">
+                    <span><strong>Customer:</strong></span>
+                    <span>{{ order.customer }}</span>
+                </div>
+                <div class="detail-row">
+                    <span><strong>Email:</strong></span>
+                    <span>{{ order.email }}</span>
+                </div>
+                <div class="detail-row">
+                    <span><strong>Phone:</strong></span>
+                    <span>{{ order.phone }}</span>
+                </div>
+                <div class="detail-row">
+                    <span><strong>Payment Method:</strong></span>
+                    <span>{{ order.get_payment_method_display }}</span>
+                </div>
+                <div class="detail-row">
+                    <span><strong>Payment Status:</strong></span>
+                    <span>{{ order.get_payment_status_display }}</span>
+                </div>
+                
+                {% if order.items.all %}
+                <div style="margin-top: 20px;">
+                    <h4>Order Items:</h4>
+                    {% for item in order.items.all %}
+                    <div class="detail-row">
+                        <span>{{ item.product.product_name }} × {{ item.quantity }}</span>
+                        <span>₹{{ item.item_total }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="detail-row total-row">
+                    <span><strong>Total Amount:</strong></span>
+                    <span>₹{{ order.total_amount }}</span>
+                </div>
+                
+                {% if order.payment_method == 'cod' %}
+                <div class="cod-info">
+                    <h4>COD Order Details:</h4>
+                    <div class="detail-row">
+                        <span>Advance Paid (20%):</span>
+                        <span>₹{{ order.cod_advance_amount|floatformat:2 }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Balance on Delivery:</span>
+                        <span>₹{{ order.total_amount|add:"-order.cod_advance_amount"|floatformat:2 }}</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <h4>Shipping Address:</h4>
+            <p>
+                {{ order.address.address }}<br>
+                {% if order.address.apartment_suite %}{{ order.address.apartment_suite }}<br>{% endif %}
+                {{ order.address.city }}, {{ order.address.state }} - {{ order.address.pin_code }}<br>
+                {{ order.address.get_country_display }}
+            </p>
+            
+            {% if order.notes %}
+            <h4>Customer Notes:</h4>
+            <p>{{ order.notes }}</p>
+            {% endif %}
+            
+            <p style="margin-top: 30px; color: #666;">
+                <strong>Order Date:</strong> {{ order.created_at|date:"F d, Y H:i" }}
+            </p>
+            
+            <p style="color: #999; font-size: 14px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                This email was sent automatically from HUSTLER CURRENCY order system.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

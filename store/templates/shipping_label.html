@@ -1,0 +1,229 @@
+<!-- templates/shipping_label.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @media print {
+            body { margin: 0; padding: 0; }
+            .no-print { display: none !important; }
+            .shipping-label {
+                width: 4in !important;
+                height: 6in !important;
+                margin: 0 !important;
+                padding: 10px !important;
+                page-break-inside: avoid;
+                page-break-after: always;
+            }
+        }
+        
+        .shipping-label {
+            width: 4in;
+            height: 6in;
+            border: 2px dashed #333;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            margin: 10px auto;
+            background: white;
+            position: relative;
+            box-sizing: border-box;
+        }
+        
+        .label-header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .company-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .address-section {
+            margin: 10px 0;
+        }
+        
+        .address-title {
+            font-size: 12px;
+            font-weight: bold;
+            margin: 0 0 5px 0;
+            border-bottom: 1px solid #ccc;
+        }
+        
+        .address-content {
+            font-size: 12px;
+            line-height: 1.3;
+            margin: 0;
+        }
+        
+        .order-info {
+            margin: 15px 0;
+            font-size: 11px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+        
+        .barcode {
+            font-family: 'Libre Barcode 39', monospace;
+            font-size: 30px;
+            text-align: center;
+            letter-spacing: 3px;
+            margin: 10px 0;
+        }
+        
+        .cod-amount {
+            background: #ffeb3b;
+            padding: 5px;
+            text-align: center;
+            font-weight: bold;
+            margin: 10px 0;
+            border: 2px solid #000;
+        }
+        
+        .instructions {
+            font-size: 9px;
+            text-align: center;
+            margin-top: 10px;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+        }
+        
+        .watermark {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            font-size: 8px;
+            color: #ccc;
+        }
+        
+        .sticker {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 3px 8px;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 3px;
+            transform: rotate(5deg);
+        }
+        
+        .sticker.fragile { background: yellow; color: #000; }
+        .sticker.urgent { background: red; color: white; }
+        .sticker.cod { background: #4CAF50; color: white; }
+        
+        .print-controls {
+            text-align: center;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="print-controls no-print">
+        <button onclick="window.print()" class="print-btn">
+            <i class="fas fa-print"></i> Print Label
+        </button>
+        <p>Size: 4x6 inches | Thermal paper recommended</p>
+    </div>
+    
+    <div class="shipping-label">
+        {% if order.payment_method == 'cod' %}
+        <div class="sticker cod">COD</div>
+        {% endif %}
+        <div class="sticker fragile">FRAGILE</div>
+        
+        <div class="label-header">
+            <p class="company-name">HUSTLER CURRENCY</p>
+            <p style="font-size: 10px; margin: 2px 0;">Official Store</p>
+        </div>
+        
+        <div class="address-section">
+            <p class="address-title">FROM:</p>
+            <p class="address-content">
+                HUSTLER CURRENCY<br>
+                1Tamil Nadu<br>
+                <br>
+                📞 +91-80156 12030
+            </p>
+        </div>
+        
+        <div class="address-section">
+            <p class="address-title">TO:</p>
+            <p class="address-content">
+                <strong>{{ order.customer|upper }}</strong><br>
+                {{ order.address.address }}<br>
+                {% if order.address.apartment_suite %}{{ order.address.apartment_suite }}<br>{% endif %}
+                {{ order.address.city }}, {{ order.address.state }}<br>
+                PIN: {{ order.address.pin_code }}<br>
+                📱 {{ order.phone }}
+            </p>
+        </div>
+        
+        <div class="order-info">
+            <div class="info-row">
+                <span>Order ID:</span>
+                <span><strong>      {% if track_id %}
+                <p> {{ track_id }}</p>
+        {% endif %}
+      </strong></span>
+            </div>
+            <div class="info-row">
+                <span>Date:</span>
+                <span>{{ order.created_at|date:"d/m/Y" }}</span>
+            </div>
+            <div class="info-row">
+                <span>Items:</span>
+                <span>{{ total_items }}</span>
+            </div>
+            <div class="info-row">
+                <span>Payment:</span>
+                <span>
+                    {% if order.payment_method == 'cod' %}
+                        COD (₹{{ order.total_amount|floatformat:2 }})
+                    {% else %}
+                        Prepaid
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        
+        <div class="barcode">
+            *{{ order.order_id }}*
+        </div>
+        
+        {% if order.payment_method == 'cod' %}
+        <div class="cod-amount">
+            COLLECT COD: ₹{{ order.total_amount|floatformat:2 }}
+        </div>
+        {% endif %}
+        
+        <div class="instructions">
+            <p><strong>INSTRUCTIONS:</strong></p>
+            <p>• Handle with care - Contains fragile items</p>
+            <p>• Contact before delivery: {{ order.phone }}</p>
+            <p>• Scan barcode for tracking</p>
+        </div>
+        
+        <div class="watermark">
+            Printed: {% now "Ymd-His" %}
+        </div>
+    </div>
+    
+    <script>
+        // Auto-print after loading
+        window.onload = function() {
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        };
+    </script>
+</body>
+</html>
