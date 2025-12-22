@@ -86,9 +86,16 @@ WSGI_APPLICATION = 'hustlecurrency.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',  # Using SQLite
-        'NAME': BASE_DIR / 'db.sqlite3',        # Database file path
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "neondb",
+        "USER": "neondb_owner",
+        "PASSWORD": "npg_6XOrDb0kjxLe",
+        "HOST": "ep-cold-shadow-adhfbxim-pooler.c-2.us-east-1.aws.neon.tech",
+        "PORT": "5432",
+        "OPTIONS": {
+            "sslmode": "require",
+        },
     }
 }
 
