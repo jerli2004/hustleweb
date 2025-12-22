@@ -88,6 +88,9 @@ DATABASES = {
             'HOST': config('DB_HOST'),
             'PASSWORD': config('DB_PASSWORD'),
             'PORT': config('DB_PORT', default='5432'),
+            'OPTIONS': {
+            'sslmode': 'require',  # <-- important for Supabase
+        },
         }
 }
 
