@@ -7,9 +7,24 @@
       "config": {
         "runtime": "python3.12"
       }
+    },
+    {
+      "src": "build.sh",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "staticfiles"
+      }
     }
   ],
   "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/media/(.*)",
+      "dest": "/media/$1"
+    },
     {
       "src": "/(.*)",
       "dest": "hustlecurrency/wsgi.py"
