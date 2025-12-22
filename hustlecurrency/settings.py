@@ -30,8 +30,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY ='uW9TJJvVoKL3lp06JqqsEsNY7SYpFRQHZdY_OwsPiniqisLrHrDmFWHR7PhDMDYmQGM'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
+DEBUG =False
 ALLOWED_HOSTS = ["*"]
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -134,18 +133,22 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
+# STATIC FILES CONFIG (CORRECT)
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # Where your dev static files are
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')    # Where collectstatic will copy them
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'store', 'static'),
 ]
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-MEDIA_URL='media/' 
-MEDIA_ROOT=os.path.join(BASE_DIR, 'media')
+
+# MEDIA FILES
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 
