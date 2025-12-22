@@ -94,15 +94,7 @@ WSGI_APPLICATION = 'hustlecurrency.wsgi.application'
 
 DATABASES = {
     'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DB_NAME'),
-            'USER': config('DB_USER'),
-            'HOST': config('DB_HOST'),
-            'PASSWORD': config('DB_PASSWORD'),
-            'PORT': config('DB_PORT', default='5432'),
-            'OPTIONS': {
-            'sslmode': 'require',  # <-- important for Supabase
-        },
+        
         }
 }
 
