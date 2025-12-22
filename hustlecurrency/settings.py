@@ -17,13 +17,6 @@ from decouple import config
 import dj_database_url
 
 
-DATABASES = {
-    'default': dj_database_url.parse(
-        config('DATABASE_URL'),
-        conn_max_age=0,
-        ssl_require=True
-    )
-}
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
