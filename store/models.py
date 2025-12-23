@@ -75,8 +75,8 @@ class Products(models.Model):
     product_name = models.CharField(max_length=200)
     product_detail = models.CharField(max_length=500, default='', blank=True, null=True)
     product_price = models.DecimalField(default=0, decimal_places=2, max_digits=10)  # Changed max_digits to 10
-    product_img = models.ImageField(upload_to='uploads/product')
-    another_product_img = models.ImageField(upload_to='uploads/product', blank=True, null=True)
+    product_img_url = models.URLField(max_length=500, blank=True, null=True, verbose_name="Product Image URL")
+    another_product_img_url = models.URLField(max_length=500, blank=True, null=True, verbose_name="Additional Image URL")
 
     def __str__(self):
         return self.product_name

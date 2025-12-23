@@ -80,48 +80,46 @@ def cart(request):
     return render(request, 'cart.html', context)
 
 def add_to_cart(request):
-    if request.method == 'POST':
-        product_id = request.POST.get('productid')
-        quantity = int(request.POST.get('quantity', 1))
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+
+    product_id = request.POST.get('productid')
+    quantity = int(request.POST.get('quantity', 1))
+
+    try:
+        product = Products.objects.get(id=product_id)
+    except Products.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Product not found'}, status=404)
+
+    cart = request.session.get('cart', {})
+    product_id_str = str(product_id)
+
+    if product_id_str in cart:
+        cart[product_id_str]['quantity'] += quantity
+    else:
+        cart[product_id_str] = {
+            'product_id': product.id,
+            'name': product.product_name,
+            'price': float(product.product_price),
+            'image': product.product_img.url if product.product_img else '',
+            'quantity': quantity,
+            'subtitle': product.product_detail[:50] if product.product_detail else ''
+        }
+
+    request.session['cart'] = cart
+    request.session.modified = True
+
+    total_items = sum(item['quantity'] for item in cart.values())
+
+    return JsonResponse({
+        'success': True,
+        'message': f'{product.product_name} added to cart',
+        'total_items': total_items
+    })
+
+  
         
-        try:
-            product = Products.objects.get(id=product_id)
-        except Products.DoesNotExist:
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': False, 'error': 'Product not found'})
-            return redirect('home')
         
-        cart = request.session.get('cart', {})
-        product_id_str = str(product_id)
-        
-        if product_id_str in cart:
-            cart[product_id_str]['quantity'] += quantity
-        else:
-            cart[product_id_str] = {
-                'product_id': product_id,
-                'name': product.product_name,
-                'price': float(product.product_price),
-                'image': product.product_img.url if product.product_img else '',
-                'quantity': quantity,
-                'subtitle': product.product_detail[:50] if product.product_detail else ''
-            }
-        
-        request.session['cart'] = cart
-        request.session.modified = True
-        
-        total_items = sum(item['quantity'] for item in cart.values())
-        
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
-                'success': True,
-                'message': f'{product.product_name} added to cart',
-                'total_items': total_items,
-                'product_name': product.product_name
-            })
-        
-        return redirect('cart')
-    
-    return JsonResponse({'success': False, 'error': 'Invalid request'})
 
 def update_cart_item(request, product_id):
     if request.method == 'POST':

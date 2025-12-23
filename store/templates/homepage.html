@@ -26,7 +26,7 @@
             {% for product in products %}
             <div class="product-card">
                 <div class="product-image">
-                    <img src="{{ product.product_img.url }}" alt="{{ product.product_name }}">
+                    <img src="{{ product.product_img_url }}" alt="{{ product.product_name }}">
                 </div>
                 <div class="product-info">
                     <h3 class="product-title">{{ product.product_name }}</h3>
@@ -62,50 +62,30 @@
         let currentCount = parseInt(cartBadge.textContent) || 0;
 
         // AJAX request to add to cart
-        $.ajax({
-            url: '{% url "add_to_cart" %}',
-            method: 'POST',
-            data: {
-                'productid': productId,
-                'quantity': 1,
-                'csrfmiddlewaretoken': csrfToken
-            },
-            success: function (response) {
-                if (response.success) {
-                    // Update cart count
-                    currentCount++;
-                    updateCartCount(currentCount);
+       $.ajax({
+    url: '{% url "add_to_cart" %}',
+    type: 'POST',
+    headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+    },
+    data: {
+        productid: productId,
+        quantity: 1
+    },
+    success: function (response) {
+        if (response.success) {
+            updateCartCount(response.total_items);
+            alert(response.message);
+        } else {
+            alert(response.error);
+        }
+    },
+    error: function () {
+        alert("Something went wrong");
+    }
+});
 
-                    // Button feedback animation
-                    const originalText = button.textContent;
-                    button.textContent = 'ADDED!';
-                    button.style.backgroundColor = '#4CAF50';
-                    button.style.borderColor = '#4CAF50';
-                    button.style.color = 'white';
-
-                    // Add bounce animation to cart icon
-                    const cartIcon = document.querySelector('.fa-shopping-cart');
-                    cartIcon.style.transform = 'scale(1.3)';
-                    setTimeout(() => {
-                        cartIcon.style.transform = 'scale(1)';
-                    }, 300);
-
-                    // Reset button after 1.5 seconds
-                    setTimeout(() => {
-                        button.textContent = originalText;
-                        button.style.backgroundColor = '';
-                        button.style.borderColor = '';
-                        button.style.color = '';
-                    }, 1500);
-                } else {
-                    alert('Error adding item to cart: ' + (response.error || 'Unknown error'));
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error('Error adding to cart:', error);
-                alert('Error adding item to cart. Please try again.');
-            }
-        });
     }
 
     // Function to update cart count (defined in base.html)

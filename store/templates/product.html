@@ -934,11 +934,11 @@
                         <!-- Slide 1: First image -->
                         <div class="gallery-slide" data-slide="0">
                             <div class="single-image-container">
-                                <img src="{{ product.product_img.url }}" 
+                                <img src="{{ product.product_img_url }}" 
                                      alt="{{ product.product_name }} - Main View"
                                      class="gallery-image"
                                      loading="lazy"
-                                     data-full="{{ product.product_img.url }}">
+                                     data-full="{{ product.product_img_url }}">
                             </div>
                         </div>
                         
@@ -946,22 +946,22 @@
                         {% if product.another_product_img %}
                         <div class="gallery-slide" data-slide="1">
                             <div class="single-image-container">
-                                <img src="{{ product.another_product_img.url }}" 
+                                <img src="{{ product.another_product_img_url }}" 
                                      alt="{{ product.product_name }} - Alternate View"
                                      class="gallery-image"
                                      loading="lazy"
-                                     data-full="{{ product.another_product_img.url }}">
+                                     data-full="{{ product.another_product_img_url }}">
                             </div>
                         </div>
                         {% else %}
                         <!-- If no second image, show main image again -->
                         <div class="gallery-slide" data-slide="1">
                             <div class="single-image-container">
-                                <img src="{{ product.product_img.url }}" 
+                                <img src="{{ product.product_img_url }}" 
                                      alt="{{ product.product_name }} - View 2"
                                      class="gallery-image"
                                      loading="lazy"
-                                     data-full="{{ product.product_img.url }}">
+                                     data-full="{{ product.product_img_url }}">
                             </div>
                         </div>
                         {% endif %}
