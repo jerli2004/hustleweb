@@ -264,7 +264,7 @@ def generate_track_id():
     characters = string.ascii_uppercase + string.digits
     return ''.join(random.choice(characters) for _ in range(length))
 
-@login_required
+
 def checkout(request):
     # GET request - show checkout page
     cart = request.session.get('cart', {})
@@ -346,7 +346,7 @@ def checkout(request):
                 total_amount += float(item['price']) * item['quantity']
             
             shipping_address = Address.objects.create(
-                user=request.user,
+                user=None,
                 address=address_line,
                 apartment_suite=apartment_suite,
                 city=city,
@@ -360,7 +360,7 @@ def checkout(request):
             
             # Create order
             order = Order.objects.create(
-                user=request.user,
+                user=None,
                 customer=customer,
                 phone=phone,
                 email=email,
@@ -445,7 +445,7 @@ def checkout(request):
     return render(request, 'checkout.html', context)
 
 @csrf_exempt
-@login_required
+
 def verify_payment(request):
     if request.method == 'POST':
         try:
@@ -496,9 +496,9 @@ def verify_payment(request):
     
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
-@login_required
+
 def order_success(request, order_id):
-    order = Order.objects.get(order_id=order_id)
+    order = get_object_or_404(Order, order_id=order_id)
     
     if order.payment_method == 'cod' and order.payment_status == 'partial':
         total = float(order.total_amount)

@@ -82,16 +82,30 @@ class Products(models.Model):
         return self.product_name
 
 class Address(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
     address = models.CharField(max_length=200, default='', blank=False, null=False)
-    country = models.CharField(max_length=3, choices=COUNTRY_CHOICES, default='IN', blank=False, null=False)  # Fixed: should be 'IN' not 'INDIA'
+    country = models.CharField(
+        max_length=3,
+        choices=COUNTRY_CHOICES,
+        default='IN'
+    )
     apartment_suite = models.CharField(max_length=50, blank=True, null=True)
     city = models.CharField(max_length=100, default='', blank=False, null=False)
-    state = models.CharField(max_length=3, choices=STATE_CHOICES, default='TN', blank=False, null=False)  # Fixed: max_length should match choices
+    state = models.CharField(
+        max_length=3,
+        choices=STATE_CHOICES,
+        default='TN'
+    )
     pin_code = models.CharField(max_length=10, default='', blank=False, null=False)
- 
+
     def __str__(self):
         return f'{self.address}, {self.city}, {self.state} {self.pin_code}'
+
 
 class Order(models.Model):
     ORDER_STATUS = [
@@ -115,7 +129,12 @@ class Order(models.Model):
     ]
     
     order_id = models.CharField(max_length=100, unique=True, default=uuid.uuid4)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders', null=True, blank=True)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
     customer = models.CharField(max_length=100, blank=False, null=False)
     address = models.ForeignKey(Address, on_delete=models.CASCADE)
     phone = models.CharField(max_length=50, blank=False, null=False)
