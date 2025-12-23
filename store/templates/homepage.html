@@ -51,54 +51,94 @@
 {% block extra_js %}
 <script>
     // Add to cart functionality
-    function addToCart(event, button) {
-        event.preventDefault(); // Prevent default link behavior
+  function addToCart(event, button) {
+    event.preventDefault();
 
-        const productId = button.getAttribute('data-product-id');
-        const csrfToken = '{{ csrf_token }}';
+    const productId = button.getAttribute('data-product-id');
 
-        // Get current cart count
-        const cartBadge = document.getElementById('cartCountBadge');
-        let currentCount = parseInt(cartBadge.textContent) || 0;
+    $.ajax({
+        url: '{% url "add_to_cart" %}',
+        type: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        data: {
+            productid: productId,
+            quantity: 1
+        },
+        success: function(response) {
+            if (response.success) {
+                // Update cart count badge
+                updateCartCount(response.total_items);
 
-        // AJAX request to add to cart
-       $.ajax({
-    url: '{% url "add_to_cart" %}',
-    type: 'POST',
-    headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-    },
-    data: {
-        productid: productId,
-        quantity: 1
-    },
-    success: function (response) {
-        if (response.success) {
-            updateCartCount(response.total_items);
-            alert(response.message);
-        } else {
-            alert(response.error);
+                // Show animated notification
+                showCartNotification("✅ " + response.message);
+
+                // Optional: animate the product image flying to cart
+                animateProductToCart(button);
+            } else {
+                showCartNotification("⚠️ " + response.error, true);
+            }
+        },
+        error: function() {
+            showCartNotification("❌ Something went wrong", true);
         }
-    },
-    error: function () {
-        alert("Something went wrong");
-    }
-});
+    });
+}
 
-    }
+// Show cart notification
+function showCartNotification(message, isError = false) {
+    const notification = document.getElementById('cartNotification');
+    notification.textContent = message;
+    notification.style.backgroundColor = isError ? '#f44336' : '#4caf50';
+    notification.style.display = 'block';
+    notification.style.opacity = 1;
 
-    // Function to update cart count (defined in base.html)
-    function updateCartCount(count) {
-        const cartBadge = document.getElementById('cartCountBadge');
-        if (cartBadge) {
-            cartBadge.textContent = count;
-            // Add animation effect
-            cartBadge.style.transform = 'scale(1.3)';
-            setTimeout(() => {
-                cartBadge.style.transform = 'scale(1)';
-            }, 300);
-        }
-    }
+    // Fade out after 2 seconds
+    setTimeout(() => {
+        notification.style.transition = 'opacity 0.5s';
+        notification.style.opacity = 0;
+        setTimeout(() => {
+            notification.style.display = 'none';
+            notification.style.transition = '';
+        }, 500);
+    }, 2000);
+}
+
+// Animate product image flying to cart
+function animateProductToCart(button) {
+    const productCard = button.closest('.product-card');
+    const productImg = productCard.querySelector('img');
+    const cartIcon = document.getElementById('cartIcon'); // your cart icon id
+
+    if (!productImg || !cartIcon) return;
+
+    const imgClone = productImg.cloneNode(true);
+    const imgRect = productImg.getBoundingClientRect();
+    const cartRect = cartIcon.getBoundingClientRect();
+
+    imgClone.style.position = 'fixed';
+    imgClone.style.left = imgRect.left + 'px';
+    imgClone.style.top = imgRect.top + 'px';
+    imgClone.style.width = imgRect.width + 'px';
+    imgClone.style.height = imgRect.height + 'px';
+    imgClone.style.transition = 'all 0.8s ease-in-out';
+    imgClone.style.zIndex = 1000;
+    document.body.appendChild(imgClone);
+
+    setTimeout(() => {
+        imgClone.style.left = cartRect.left + 'px';
+        imgClone.style.top = cartRect.top + 'px';
+        imgClone.style.width = '30px';
+        imgClone.style.height = '30px';
+        imgClone.style.opacity = 0.5;
+    }, 10);
+
+    setTimeout(() => {
+        imgClone.remove();
+    }, 800);
+}
+
 </script>
 {% endblock %}
