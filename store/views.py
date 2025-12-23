@@ -79,18 +79,25 @@ def cart(request):
     }
     return render(request, 'cart.html', context)
 
+
+
 def add_to_cart(request):
     if request.method != 'POST':
         return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
 
     product_id = request.POST.get('productid')
-    quantity = int(request.POST.get('quantity', 1))
+    
+    try:
+        quantity = int(request.POST.get('quantity', 1))
+    except (ValueError, TypeError):
+        quantity = 1
 
     try:
         product = Products.objects.get(id=product_id)
     except Products.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Product not found'}, status=404)
 
+    # Initialize cart from session
     cart = request.session.get('cart', {})
     product_id_str = str(product_id)
 
@@ -101,7 +108,7 @@ def add_to_cart(request):
             'product_id': product.id,
             'name': product.product_name,
             'price': float(product.product_price),
-            'image': product.product_img.url if product.product_img else '',
+            'image': product.product_img_url or '',
             'quantity': quantity,
             'subtitle': product.product_detail[:50] if product.product_detail else ''
         }
@@ -116,6 +123,7 @@ def add_to_cart(request):
         'message': f'{product.product_name} added to cart',
         'total_items': total_items
     })
+
 
   
         
