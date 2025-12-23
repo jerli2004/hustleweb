@@ -5,121 +5,120 @@
 {% block title %}Home - HUSTLER CURRENCY{% endblock %}
 
 {% block content %}
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container">
-            <img src="{% static 'home.png' %}" alt="Hustler Currency">
-            <div class="hero-subtitle">SHIPPING ACROSS INDIA</div>
-            
-            <div class="cta-buttons">
-                <a href="#products" class="btn">SHOP NOW</a>
-            </div>
-        </div>
-    </section>
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <img src="https://i.pinimg.com/736x/04/29/56/04295608039211ebd9cd286193befecd.jpg" alt="Hustler Currency">
+        <div class="hero-subtitle">SHIPPING ACROSS INDIA</div>
 
-    <!-- Products Section -->
-    <section class="products-section" id="products">
-        <div class="container">
-            <h2 class="section-title">Our products</h2>
-            
-            <div class="products-grid">
-                {% for product in products %}
-                    <div class="product-card">
-                        <div class="product-image">
-                            <img src="{{ product.product_img.url }}" alt="{{ product.product_name }}">
-                        </div>
-                        <div class="product-info">
-                            <h3 class="product-title">{{ product.product_name }}</h3>
-                            <div class="product-price">{{ product.product_price }}</div>
-                            <div class="product-actions">
-                                <!-- Add to Cart Button -->
-                                <a href="#" class="action-btn add-to-cart" 
-                                   data-product-id="{{ product.id }}"
-                                   onclick="addToCart(event, this)">
-                                    ADD TO CART
-                                </a>
-                                
-                                <a class="action-btn view" href="{% url 'product_detail' product.id %}">VIEW</a>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
+        <div class="cta-buttons">
+            <a href="#products" class="btn">SHOP NOW</a>
         </div>
-    </section>
+    </div>
+</section>
+
+<!-- Products Section -->
+<section class="products-section" id="products">
+    <div class="container">
+        <h2 class="section-title">Our products</h2>
+
+        <div class="products-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="{{ product.product_img.url }}" alt="{{ product.product_name }}">
+                </div>
+                <div class="product-info">
+                    <h3 class="product-title">{{ product.product_name }}</h3>
+                    <div class="product-price">{{ product.product_price }}</div>
+                    <div class="product-actions">
+                        <!-- Add to Cart Button -->
+                        <a href="#" class="action-btn add-to-cart" data-product-id="{{ product.id }}"
+                            onclick="addToCart(event, this)">
+                            ADD TO CART
+                        </a>
+
+                        <a class="action-btn view" href="{% url 'product_detail' product.id %}">VIEW</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// Add to cart functionality
-function addToCart(event, button) {
-    event.preventDefault(); // Prevent default link behavior
-    
-    const productId = button.getAttribute('data-product-id');
-    const csrfToken = '{{ csrf_token }}';
-    
-    // Get current cart count
-    const cartBadge = document.getElementById('cartCountBadge');
-    let currentCount = parseInt(cartBadge.textContent) || 0;
-    
-    // AJAX request to add to cart
-    $.ajax({
-        url: '{% url "add_to_cart" %}',
-        method: 'POST',
-        data: {
-            'productid': productId,
-            'quantity': 1,
-            'csrfmiddlewaretoken': csrfToken
-        },
-        success: function(response) {
-            if (response.success) {
-                // Update cart count
-                currentCount++;
-                updateCartCount(currentCount);
-                
-                // Button feedback animation
-                const originalText = button.textContent;
-                button.textContent = 'ADDED!';
-                button.style.backgroundColor = '#4CAF50';
-                button.style.borderColor = '#4CAF50';
-                button.style.color = 'white';
-                
-                // Add bounce animation to cart icon
-                const cartIcon = document.querySelector('.fa-shopping-cart');
-                cartIcon.style.transform = 'scale(1.3)';
-                setTimeout(() => {
-                    cartIcon.style.transform = 'scale(1)';
-                }, 300);
-                
-                // Reset button after 1.5 seconds
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.style.backgroundColor = '';
-                    button.style.borderColor = '';
-                    button.style.color = '';
-                }, 1500);
-            } else {
-                alert('Error adding item to cart: ' + (response.error || 'Unknown error'));
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('Error adding to cart:', error);
-            alert('Error adding item to cart. Please try again.');
-        }
-    });
-}
+    // Add to cart functionality
+    function addToCart(event, button) {
+        event.preventDefault(); // Prevent default link behavior
 
-// Function to update cart count (defined in base.html)
-function updateCartCount(count) {
-    const cartBadge = document.getElementById('cartCountBadge');
-    if (cartBadge) {
-        cartBadge.textContent = count;
-        // Add animation effect
-        cartBadge.style.transform = 'scale(1.3)';
-        setTimeout(() => {
-            cartBadge.style.transform = 'scale(1)';
-        }, 300);
+        const productId = button.getAttribute('data-product-id');
+        const csrfToken = '{{ csrf_token }}';
+
+        // Get current cart count
+        const cartBadge = document.getElementById('cartCountBadge');
+        let currentCount = parseInt(cartBadge.textContent) || 0;
+
+        // AJAX request to add to cart
+        $.ajax({
+            url: '{% url "add_to_cart" %}',
+            method: 'POST',
+            data: {
+                'productid': productId,
+                'quantity': 1,
+                'csrfmiddlewaretoken': csrfToken
+            },
+            success: function (response) {
+                if (response.success) {
+                    // Update cart count
+                    currentCount++;
+                    updateCartCount(currentCount);
+
+                    // Button feedback animation
+                    const originalText = button.textContent;
+                    button.textContent = 'ADDED!';
+                    button.style.backgroundColor = '#4CAF50';
+                    button.style.borderColor = '#4CAF50';
+                    button.style.color = 'white';
+
+                    // Add bounce animation to cart icon
+                    const cartIcon = document.querySelector('.fa-shopping-cart');
+                    cartIcon.style.transform = 'scale(1.3)';
+                    setTimeout(() => {
+                        cartIcon.style.transform = 'scale(1)';
+                    }, 300);
+
+                    // Reset button after 1.5 seconds
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.backgroundColor = '';
+                        button.style.borderColor = '';
+                        button.style.color = '';
+                    }, 1500);
+                } else {
+                    alert('Error adding item to cart: ' + (response.error || 'Unknown error'));
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error adding to cart:', error);
+                alert('Error adding item to cart. Please try again.');
+            }
+        });
     }
-}
+
+    // Function to update cart count (defined in base.html)
+    function updateCartCount(count) {
+        const cartBadge = document.getElementById('cartCountBadge');
+        if (cartBadge) {
+            cartBadge.textContent = count;
+            // Add animation effect
+            cartBadge.style.transform = 'scale(1.3)';
+            setTimeout(() => {
+                cartBadge.style.transform = 'scale(1)';
+            }, 300);
+        }
+    }
 </script>
 {% endblock %}
