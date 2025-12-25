@@ -1167,7 +1167,7 @@
                     
                     <div class="form-group">
                         <label class="form-label">Full Name *</label>
-                        <input type="text" class="form-control" name="customer" 
+                        <input  id="customer" type="text" class="form-control" name="customer" 
                                value="{{ request.user.get_full_name|default:request.user.username }}" required>
                         <div class="error-message" id="customerError"></div>
                     </div>
@@ -1175,13 +1175,13 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Phone Number *</label>
-                            <input type="tel" class="form-control" name="phone" 
+                            <input id="phone" type="tel" class="form-control" name="phone" 
                                    pattern="[0-9]{10}" title="10 digit phone number" required>
                             <div class="error-message" id="phoneError"></div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Email Address *</label>
-                            <input type="email" class="form-control" name="email" 
+                            <input  id="email" type="email" class="form-control" name="email" 
                                    value="{{ request.user.email }}" required>
                             <div class="error-message" id="emailError"></div>
                         </div>
@@ -1734,45 +1734,46 @@
         });
         
         // Open Razorpay payment
+
         function openRazorpayPayment(data) {
-            const isCOD = data.payment_method === 'cod';
-            const paymentDescription = isCOD ? 
-                '20% Advance Payment for COD Order' : 
-                'Full Payment for Your Order';
-            
-            const options = {
-                key: data.razorpay_key,
-                amount: data.amount,
-                currency: 'INR',
-                name: 'HUSTLER CURRENCY',
-                description: paymentDescription,
-                order_id: data.razorpay_order_id,
-                handler: function(response) {
-                    // Verify payment on server
-                    verifyPayment(response, data.order_id);
-                },
-                prefill: {
-                    name: checkoutForm.customer.value,
-                    email: checkoutForm.email.value,
-                    contact: checkoutForm.phone.value
-                },
-                theme: {
-                    color: '#000000'
-                },
-                modal: {
-                    ondismiss: function() {
-                        showNotification('Payment cancelled', 'info');
-                        proceedBtn.innerHTML = '<i class="fas fa-lock"></i> ' + 
-                            (isCOD ? 'Pay 20% Advance Now' : 'Pay Full Amount');
-                        proceedBtn.disabled = false;
-                    }
-                }
-            };
-            
-            const rzp = new Razorpay(options);
-            rzp.open();
+    const isCOD = data.payment_method === 'cod';
+
+    const options = {
+        key: data.razorpay_key,
+        amount: data.amount,
+        currency: 'INR',
+        name: 'HUSTLER CURRENCY',
+        description: isCOD
+            ? '20% Advance Payment for COD Order'
+            : 'Full Payment for Your Order',
+        order_id: data.razorpay_order_id,
+
+        handler: function (response) {
+            verifyPayment(response, data.order_id);
+        },
+
+        prefill: {
+            name: document.getElementById('customer').value,
+            email: document.getElementById('email').value,
+            contact: document.getElementById('phone').value
+        },
+
+        theme: {
+            color: '#000000'
+        },
+
+        modal: {
+            ondismiss: function () {
+                showNotification('Payment cancelled', 'info');
+                proceedBtn.disabled = false;
+            }
         }
-        
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+}
+
         // Verify payment with server
         function verifyPayment(paymentResponse, orderId) {
             fetch('{% url "verify_payment" %}', {
