@@ -506,6 +506,8 @@ def verify_payment(request):
 
 
 def order_success(request, order_id):
+    print("URL order_id =", order_id)
+    print("DB order_ids =", list(Order.objects.values_list('order_id', flat=True)))
     order = get_object_or_404(Order, order_id=order_id)
     order_items = OrderItem.objects.filter(order=order)
 

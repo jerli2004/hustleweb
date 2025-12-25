@@ -5,6 +5,11 @@ import uuid
 import random
 import string
 
+
+def generate_order_id():
+    return str(uuid.uuid4())
+
+
 STATE_CHOICES = [
     ('AP', 'Andhra Pradesh'),
     ('AR', 'Arunachal Pradesh'),
@@ -133,8 +138,10 @@ class Order(models.Model):
     order_id = models.CharField(
     max_length=36,
     unique=True,
-    default=lambda: str(uuid.uuid4()),
-    editable=False)
+    default=generate_order_id,
+    editable=False
+)
+
 
     user = models.ForeignKey(
         User,
