@@ -917,14 +917,30 @@
             height: 34px;
         }
     }
+
+.product-price {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    white-space: nowrap !important;
+    flex-direction: row !important;
+}
+
+@media (max-width: 600px) {
+    .product-price {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+    }
+}
+
+
 </style>
 
 <section class="product-detail-section">
     <div class="container">
         <!-- Back to products link -->
-        <a href="{% url 'home' %}#products" class="back-link">
-            <i class="fas fa-arrow-left"></i> Back to Products
-        </a>
+     
         
         <div class="product-detail-container">
             <!-- Product Images Gallery - IMPROVED SLIDER -->
@@ -1028,17 +1044,12 @@
                 
                 <!-- Product Meta -->
                 <div class="product-meta">
-                    <div class="product-price">
-                        <span class="current-price">{{ product.product_price }}</span>
-                        {% if product.original_price and product.original_price > product.product_price %}
-                        <span class="original-price">{{ product.original_price }}</span>
-                        <span class="discount-badge">
-                            {% widthratio product.product_price product.original_price 100 as discount %}
-                            {{ 100|add:discount|add:"-"|slice:"0:2" }}% OFF
-                        </span>
-                        {% endif %}
-                    </div>
-                </div>
+ <div class="product-price">
+    <span class="current-price">1999</span>
+    <span class="original-price">2999</span>
+    <span class="discount-badge">33% OFF</span>
+</div>
+
                 
                 <!-- Product Description -->
                 <div class="product-description">

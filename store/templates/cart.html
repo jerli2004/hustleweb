@@ -369,9 +369,7 @@
 {% block content %}
 <section class="cart-section">
     <div class="container">
-        <a href="{% url 'home' %}" class="back-link">
-            <i class="fas fa-arrow-left"></i> Continue Shopping
-        </a>
+       
         
         <h1 class="page-title">Shopping Cart</h1>
         
@@ -391,7 +389,7 @@
                         
                         <div class="item-details">
                             <h3 class="item-title">{{ item.product.product_name }}</h3>
-                            <p class="item-subtitle">{{ item.product.product_detail|truncatechars:50 }}</p>
+                            
                             
                             <div class="item-price">
                                 ₹{{ item.item_total|floatformat:2 }}

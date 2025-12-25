@@ -454,79 +454,83 @@ def checkout(request):
 
 @csrf_exempt
 
+@csrf_exempt
 def verify_payment(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            order_id = data.get('order_id')
-            
-            order = Order.objects.get(id=order_id, user=request.user)
-            
-            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-            
+            order_id = int(data.get('order_id'))  # make sure it's int
+
+            order = Order.objects.get(id=order_id)
+
+            client = razorpay.Client(
+                auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+            )
+
             params_dict = {
                 'razorpay_order_id': data['razorpay_order_id'],
                 'razorpay_payment_id': data['razorpay_payment_id'],
-                'razorpay_signature': data['razorpay_signature']
+                'razorpay_signature': data['razorpay_signature'],
             }
-            
+
             client.utility.verify_payment_signature(params_dict)
-            
+
             order.razorpay_payment_id = data['razorpay_payment_id']
             order.razorpay_signature = data['razorpay_signature']
-            
+
             if order.payment_method == 'cod':
                 order.payment_status = 'partial'
                 order.status = 'processing'
-                message = '20% advance payment successful! Your COD order is confirmed.'
+                message = '20% advance paid. COD order confirmed.'
             else:
                 order.payment_status = 'completed'
                 order.status = 'processing'
-                message = 'Payment successful! Your order is confirmed.'
-            
+                message = 'Payment successful. Order confirmed.'
+
             order.save()
-            
-            if 'cart' in request.session:
-                del request.session['cart']
-                request.session.modified = True
-            
+
+            # clear cart
+            request.session.pop('cart', None)
+
             return JsonResponse({
                 'success': True,
                 'message': message,
-                'redirect_url': f'/order-success/{order.order_id}/'
+                'redirect_url': f'/order-success/{order.id}/'
             })
-            
+
         except razorpay.errors.SignatureVerificationError:
             return JsonResponse({'success': False, 'error': 'Payment verification failed'})
+
+        except Order.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Order not found'})
+
         except Exception as e:
             traceback.print_exc()
             return JsonResponse({'success': False, 'error': str(e)})
-    
+
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
 
-# views.py
-from django.shortcuts import get_object_or_404
-
 def order_success(request, order_id):
-    order = get_object_or_404(Order, id=order_id)  # fetch by numeric PK
+    order = get_object_or_404(Order, id=order_id)
     order_items = order.items.all()
 
     cod_advance = 0
     balance_on_delivery = 0
+
     if order.payment_method == 'cod' and order.payment_status == 'partial':
         total = float(order.total_amount)
         cod_advance = total * 0.2
         balance_on_delivery = total * 0.8
 
-    context = {
+    return render(request, 'order_success.html', {
         'order': order,
         'track_id': order.track_id,
         'cod_advance': cod_advance,
         'balance_on_delivery': balance_on_delivery,
         'order_items': order_items,
-    }
-    return render(request, 'order_success.html', context)
+    })
+
 
 
 def is_admin(user):

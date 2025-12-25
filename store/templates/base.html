@@ -50,6 +50,21 @@
     .fa-shopping-cart {
         font-size: 22px;
     }
+
+    /* Prevent content hiding under fixed header */
+.main-content {
+    padding-top: 90px; /* desktop header height */
+}
+
+/* Mobile fix */
+@media (max-width: 768px) {
+    .main-content {
+        padding-top: 120px; /* mobile header height */
+    }
+}
+
+
+
     </style>
 </head>
 <body>
@@ -80,10 +95,12 @@
         </div>
     </header>
 
-    <!-- Main Content Block -->
+   <!-- Main Content Block -->
+<main class="main-content">
     {% block content %}
-    <!-- This will be filled by child templates -->
     {% endblock %}
+</main>
+
 
     <!-- Footer -->
     <footer>
