@@ -507,23 +507,24 @@ def verify_payment(request):
 
 def order_success(request, order_id):
     order = get_object_or_404(Order, order_id=order_id)
-    
+    order_items = OrderItem.objects.filter(order=order)
+
+    cod_advance = 0
+    balance_on_delivery = 0
+
     if order.payment_method == 'cod' and order.payment_status == 'partial':
         total = float(order.total_amount)
         cod_advance = total * 0.2
         balance_on_delivery = total * 0.8
-    else:
-        cod_advance = 0
-        balance_on_delivery = 0
-    
+
     context = {
         'order': order,
         'track_id': order.track_id,
         'cod_advance': cod_advance,
         'balance_on_delivery': balance_on_delivery,
-        'order_items': order.items.all(),
+        'order_items': order_items,
     }
-    
+
     return render(request, 'order_success.html', context)
 
 def is_admin(user):
