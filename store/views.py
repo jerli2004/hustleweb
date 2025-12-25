@@ -505,11 +505,16 @@ def verify_payment(request):
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
 
+# views.py
+from django.shortcuts import get_object_or_404
+
 def order_success(request, order_id):
-    print("URL order_id =", order_id)
+    print("URL order_id =", repr(order_id))
     print("DB order_ids =", list(Order.objects.values_list('order_id', flat=True)))
+
+    order_id = order_id.strip()  # remove whitespace
     order = get_object_or_404(Order, order_id=order_id)
-    order_items = OrderItem.objects.filter(order=order)
+    order_items = order.items.all()  # related_name 'items' works
 
     cod_advance = 0
     balance_on_delivery = 0
