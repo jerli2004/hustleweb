@@ -253,7 +253,7 @@ def buy_now(request):
                 'product_id': product_id,
                 'name': product.product_name,
                 'price': float(product.product_price),
-                'image': product.product_img.url if product.product_img else '',
+                'image': product.product_img_url if product.product_img_url else '',
                 'quantity': quantity,
                 'subtitle': product.product_detail[:50] if product.product_detail else ''
             }
