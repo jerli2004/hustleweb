@@ -128,7 +128,14 @@ class Order(models.Model):
         ('failed', 'Failed'),
     ]
     
-    order_id = models.CharField(max_length=100, unique=True, default=uuid.uuid4)
+ 
+
+    order_id = models.CharField(
+    max_length=36,
+    unique=True,
+    default=lambda: str(uuid.uuid4()),
+    editable=False)
+
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
