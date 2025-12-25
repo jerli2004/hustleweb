@@ -1168,7 +1168,7 @@
                     <div class="form-group">
                         <label class="form-label">Full Name *</label>
                         <input  id="customer" type="text" class="form-control" name="customer" 
-                               value="{{ request.user.get_full_name|}}" required>
+                               value="{{ request.user.get_full_name|default:'' }}" required>
                         <div class="error-message" id="customerError"></div>
                     </div>
                     
