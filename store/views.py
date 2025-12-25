@@ -509,16 +509,11 @@ def verify_payment(request):
 from django.shortcuts import get_object_or_404
 
 def order_success(request, order_id):
-    print("URL order_id =", repr(order_id))
-    print("DB order_ids =", list(Order.objects.values_list('order_id', flat=True)))
-
-    order_id = order_id.strip()  # remove whitespace
-    order = get_object_or_404(Order, order_id=order_id)
-    order_items = order.items.all()  # related_name 'items' works
+    order = get_object_or_404(Order, id=order_id)  # fetch by numeric PK
+    order_items = order.items.all()
 
     cod_advance = 0
     balance_on_delivery = 0
-
     if order.payment_method == 'cod' and order.payment_status == 'partial':
         total = float(order.total_amount)
         cod_advance = total * 0.2
@@ -531,8 +526,8 @@ def order_success(request, order_id):
         'balance_on_delivery': balance_on_delivery,
         'order_items': order_items,
     }
-
     return render(request, 'order_success.html', context)
+
 
 def is_admin(user):
     return user.is_superuser or user.is_staff
