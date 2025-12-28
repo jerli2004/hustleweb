@@ -919,14 +919,69 @@ def add_to_cart(request):
 
     request.session['cart'] = cart
     request.session.modified = True
+
+    total_items = sum(item['quantity'] for item in cart.values())
+    subtotal = sum(item['price'] * item['quantity'] for item in cart.values())
+    total = subtotal
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'message': f'{product.product_name} added to cart',
+            'total_items': total_items,
+            'cart_data': {
+                'total_items': total_items,
+                'subtotal': subtotal,
+                'total': total
+            }
+        })
+
     return redirect('cart')
 
+
+
+
+
+from django.http import JsonResponse
 
 def remove_from_cart(request, product_id):
-    cart = request.session.get('cart', {})
-    cart.pop(str(product_id), None)
-    request.session['cart'] = cart
+    if request.method == 'POST':
+        cart = request.session.get('cart', {})
+        removed = cart.pop(str(product_id), None)
+        request.session['cart'] = cart
+        request.session.modified = True
+
+        total_items = sum(item['quantity'] for item in cart.values())
+        subtotal = sum(item['price'] * item['quantity'] for item in cart.values())
+        total = subtotal  # free shipping
+
+        # Check AJAX
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            if removed:
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Item removed from cart',
+                    'cart_data': {
+                        'total_items': total_items,
+                        'subtotal': subtotal,
+                        'total': total
+                    }
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Item not found in cart',
+                    'cart_data': {
+                        'total_items': total_items,
+                        'subtotal': subtotal,
+                        'total': total
+                    }
+                })
+
+    # fallback for normal POST (non-AJAX)
     return redirect('cart')
+
+
 
 
 def clear_cart(request):
