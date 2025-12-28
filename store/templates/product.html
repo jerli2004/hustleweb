@@ -934,6 +934,30 @@
     }
 }
 
+.product-dimensions {
+    font-size: 24px;      /* Desktop font size */
+    font-weight: 600;
+    color: #333;
+    margin: 20px 0;
+    text-align: center;
+}
+
+/* Responsive for tablets and smaller devices */
+@media (max-width: 768px) {
+    .product-dimensions {
+        font-size: 20px;
+    }
+}
+
+/* Responsive for mobile phones */
+@media (max-width: 480px) {
+    .product-dimensions {
+        font-size: 16px;
+        margin: 15px 0;
+    }
+}
+
+
 
 </style>
 
@@ -1055,6 +1079,11 @@
                 <div class="product-description">
                     <h3>Description</h3>
                     <p>{{ product.product_detail|default:"Product details not available."|linebreaks }}</p>
+                    <br>
+                   
+
+                   <h1 class="product-dimensions">Dimensions: 35cm × 38cm × 6cm</h1>
+
                 </div>
                 
                 <!-- Quantity Selector -->
@@ -1074,14 +1103,16 @@
                 <!-- Product Actions -->
                 <div class="product-actions">
                     <!-- Add to Cart Form -->
-                    <form method="POST" action="{% url 'add_to_cart' %}" id="add-to-cart-form">
-                        {% csrf_token %}
-                        <input type="hidden" name="productid" value="{{ product.id }}">
-                        <input type="hidden" name="quantity" id="hidden-quantity" value="1">
-                        <button type="submit" class="action-btn add-to-cart-btn" aria-label="Add to cart">
-                            <i class="fas fa-shopping-cart"></i> ADD TO CART
-                        </button>
-                    </form>
+                   <form method="POST" action="{% url 'add_to_cart' %}" class="add-to-cart-form">
+    {% csrf_token %}
+    <input type="hidden" name="productid" value="{{ product.id }}">
+    <input type="hidden" name="quantity" value="1">
+
+    <button type="submit" class="action-btn add-to-cart" aria-label="Add to cart">
+        ADD TO CART
+    </button>
+</form>
+
                     
                     <!-- Buy Now Form -->
                     <form method="POST" action="{% url 'buy_now' %}" id="buy-now-form">
