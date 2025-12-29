@@ -83,6 +83,9 @@ path('print-shipping-label/<int:order_id>/', views.print_shipping_label, name='p
 
      path('print-all-orders/', views.print_all_orders, name='print_all_orders'),
      path('print-orders-by-date/', views.print_orders_by_date, name='print_orders_by_date'),
+     path('dashboard/print_orders_by_date/', views.print_orders_by_date, name='print_orders_by_date'),
+    path('dashboard/print_all_orders/', views.print_all_orders, name='print_all_orders'),
+    path('dashboard/print_orders_selected/', views.print_orders_selected, name='print_orders_selected'),
 
 ]
 

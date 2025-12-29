@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.contrib.auth.models import User
 from django.db import models
 import datetime
@@ -112,6 +113,7 @@ class Address(models.Model):
         return f'{self.address}, {self.city}, {self.state} {self.pin_code}'
 
 
+
 class Order(models.Model):
     ORDER_STATUS = [
         ('pending', 'Pending'),
@@ -133,25 +135,21 @@ class Order(models.Model):
         ('failed', 'Failed'),
     ]
     
- 
-
     order_id = models.CharField(
-    max_length=36,
-    unique=True,
-    default=generate_order_id,
-    editable=False
-)
-
-
+        max_length=36,
+        unique=True,
+        default=generate_order_id,
+        editable=False
+    )
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
         blank=True
     )
-    customer = models.CharField(max_length=100, blank=False, null=False)
+    customer = models.CharField(max_length=100)
     address = models.ForeignKey(Address, on_delete=models.CASCADE)
-    phone = models.CharField(max_length=50, blank=False, null=False)
+    phone = models.CharField(max_length=50)
     email = models.EmailField(blank=True, null=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='razorpay')
@@ -165,16 +163,15 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
     track_id = models.CharField(max_length=6, blank=True, null=True)
+    paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return f"Order #{self.order_id} - {self.customer}"
-    
+
     def cod_advance_amount(self):
-        # 20% advance for COD
-        return self.total_amount * 0.2
-    
+        return self.total_amount * Decimal('0.2')
+
     def save(self, *args, **kwargs):
-        # Import here to avoid circular imports
         import random
         import string
         
@@ -184,6 +181,26 @@ class Order(models.Model):
             self.track_id = ''.join(random.choice(characters) for _ in range(length))
         
         super().save(*args, **kwargs)
+
+    from decimal import Decimal
+
+    @property
+    def display_paid(self):
+    # For COD, assume 20% is paid as advance
+        if self.payment_method == 'cod':
+           if self.payment_status in ['partial', 'completed']:
+              return self.total_amount * Decimal('0.2')
+        return self.paid_amount or Decimal('0.0')
+
+    @property
+    def balance_amount(self):
+        if self.payment_method == 'cod':
+            if self.payment_status == 'partial':
+                return self.total_amount - (self.total_amount * Decimal('0.2'))
+            elif self.payment_status == 'completed':
+                return Decimal('0.0')
+        return self.total_amount - (self.paid_amount or Decimal('0.0'))
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
