@@ -2027,7 +2027,7 @@ def admin_required(view_func):
         return view_func(request, *args, **kwargs)
     return wrapper
 
-
+@admin_required
 def admin_login(request):
     if request.method == 'POST':
         if request.POST.get('admin_password') == ADMIN_PASSWORD:

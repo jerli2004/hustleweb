@@ -75,6 +75,17 @@ button, .btn { cursor: pointer; border: none; border-radius: 5px; padding: 6px 1
     .dashboard-header { flex-direction: column; align-items:flex-start; gap: 10px; }
     .stats-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
 }
+
+
+.status-badge.processing { background-color: #3498db; }
+.status-badge.shipped { background-color: #9b59b6; }
+.status-badge.delivered { background-color: #2ecc71; }
+.status-badge.pending { background-color: #f39c12; }
+.status-badge.cancelled { background-color: #e74c3c; }
+
+.payment-badge.cod { background-color: #f39c12; }
+.payment-badge.razorpay { background-color: #27ae60; }
+
 </style>
 </head>
 <body>
@@ -88,7 +99,7 @@ button, .btn { cursor: pointer; border: none; border-radius: 5px; padding: 6px 1
             <input type="date" id="orderDate" value="{% now 'Y-m-d' %}">
             <button onclick="printOrdersByDate()" class="print-btn date-btn"><i class="fas fa-calendar-day"></i> Print by Date</button>
             <button onclick="printTodayOrders()" class="print-btn"><i class="fas fa-print"></i> Print Today's Orders</button>
-            <button onclick="printSelectedOrders()" class="print-btn" id="bulkPrintBtn" disabled><i class="fas fa-print"></i> Print Selected (0)</button>
+            {% comment %} <button onclick="printSelectedOrders()" class="print-btn" id="bulkPrintBtn" disabled><i class="fas fa-print"></i> Print Selected (0)</button> {% endcomment %}
             <button onclick="printAllOrders()" class="print-btn"><i class="fas fa-print"></i> Print All Orders</button>
             <button onclick="deleteSelectedOrders()" class="delete-btn" id="deleteBtn" disabled><i class="fas fa-trash"></i> Delete Selected (0)</button>
         </div>
@@ -141,58 +152,97 @@ button, .btn { cursor: pointer; border: none; border-radius: 5px; padding: 6px 1
 <div class="orders-table-container">
     <table class="orders-table">
         <thead>
-            <tr>
-                <th><input type="checkbox" id="selectAllOrders" onchange="toggleSelectAll()"></th>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Date</th>
-                <th>Total Amount</th>
-                <th>Paid Amount</th>
-                <th>Balance</th>
-                <th>Track ID</th>
-                <th>Payment</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for order in recent_orders %}
-        <tr data-order-id="{{ order.id }}">
-    <td><input type="checkbox" class="order-checkbox" value="{{ order.id }}" onchange="updateActionButtons()"></td>
-    <td><strong>#{{ order.order_id }}</strong></td>
-    <td>{{ order.customer }}</td>
-    <td>{{ order.created_at|date:"d/m/Y" }}</td>
-    <td>₹{{ order.total_amount|floatformat:2 }}</td>
-    <td>₹{{ order.dynamic_paid|floatformat:2 }}</td>
+<tr>
+    <th><input type="checkbox" id="selectAllOrders" onchange="toggleSelectAll()"></th>
+    <th>Order ID</th>
+    <th>Customer</th>
+    <th>Date</th>
+    <th>Total</th>
+    <th>Paid</th>
+    <th>Balance</th>
+    <th>Track ID</th>
+    <th>Payment</th>
+    <th>Status</th>
+    <th>Actions</th>
+</tr>
+</thead>
 
-    <td class="balance-column">
-        {% if order.dynamic_balance > 0 %}
-        ₹{{ order.dynamic_balance|floatformat:2 }}
-        {% else %}
-        -{% endif %}
+    <tbody>
+{% for order in recent_orders %}
+<tr data-order-id="{{ order.id }}">
+
+    <!-- Checkbox -->
+    <td>
+        <input type="checkbox"
+               class="order-checkbox"
+               value="{{ order.id }}"
+               onchange="updateActionButtons()">
     </td>
 
+    <!-- Order ID -->
+    <td>#{{ order.order_id|slice:":8" }}</td>
 
+    <!-- Customer -->
+    <td>{{ order.customer }}</td>
+
+    <!-- Date -->
+    <td>{{ order.created_at|date:"d/m/Y" }}</td>
+
+    <!-- Total -->
+    <td>₹{{ order.total_amount|floatformat:2 }}</td>
+
+    <!-- Paid -->
+    <td>₹{{ order.display_paid|floatformat:2 }}</td>
+
+    <!-- Balance -->
+    <td class="balance-column">
+        {% if order.balance_amount > 0 %}
+            ₹{{ order.balance_amount|floatformat:2 }}
+        {% else %}
+            -
+        {% endif %}
+    </td>
+
+    <!-- Track ID -->
+    <td>
         {% if order.track_id %}
             {{ order.track_id }}
         {% else %}
             No ID
         {% endif %}
     </td>
-    <td><span class="payment-badge {{ order.payment_method }}">{{ order.payment_method|title }}</span></td>
-    <td><span class="status-badge {{ order.status }}">{{ order.status|title }}</span></td>
+
+    <!-- Payment -->
+    <td>
+        <span class="payment-badge {{ order.payment_method }}">
+            {{ order.payment_method|upper }}
+        </span>
+    </td>
+
+    <!-- Status -->
+    <td>
+        <span class="status-badge {{ order.status }}">
+            {{ order.status|title }}
+        </span>
+    </td>
+
+    <!-- Actions -->
     <td class="action-buttons">
-        <a href="{% url 'order_detail_admin' order.id %}" class="btn-view"><i class="fas fa-eye"></i> View</a>
+        <a href="{% url 'order_detail_admin' order.id %}" class="btn-view">
+            <i class="fas fa-eye"></i>
+        </a>
         <a href="{% url 'print_shipping_label' order.id %}" class="btn-print" target="_blank"><i class="fas fa-print"></i> Print</a>
-        <button onclick="printSingleOrder('{{ order.id }}')" class="btn-print-single"><i class="fas fa-tag"></i> Label</button>
         <button onclick="deleteSingleOrder('{{ order.id }}', '{{ order.order_id }}')" class="btn-delete-single"><i class="fas fa-trash"></i></button>
     </td>
-</tr>
 
-        {% empty %}
-            <tr><td colspan="11" class="empty-state">No orders yet</td></tr>
-        {% endfor %}
-        </tbody>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="11" class="empty-state">No orders found</td>
+</tr>
+{% endfor %}
+</tbody>
+
     </table>
 </div>
 
